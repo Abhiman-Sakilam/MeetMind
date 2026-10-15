@@ -1,4 +1,5 @@
 import hmac
+import ipaddress
 import logging
 from typing import Annotated
 
@@ -82,11 +83,28 @@ app.add_middleware(
 )
 
 
+def _is_local_client(host: str | None) -> bool:
+    if host == "testclient":  # Starlette TestClient
+        return True
+    try:
+        ip = ipaddress.ip_address(host or "")
+    except ValueError:
+        return False
+    return ip.is_loopback or ip.is_private
+
+
 def verify_service_token(
+    request: Request,
     authorization: Annotated[str | None, Header()] = None,
 ) -> None:
     expected = (settings.ai_brain_service_token or "").strip()
     if not expected:
+        # No token configured: only trust this machine / local network (Docker, LAN).
+        if not _is_local_client(request.client.host if request.client else None):
+            raise HTTPException(
+                status_code=403,
+                detail="Set AI_BRAIN_SERVICE_TOKEN to allow non-local clients",
+            )
         return
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing bearer token")

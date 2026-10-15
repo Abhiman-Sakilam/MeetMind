@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 from datetime import datetime
 from typing import Any
+from xml.sax.saxutils import escape
 
 
 def _safe_str(val: Any, max_len: int = 0) -> str:
@@ -11,6 +12,11 @@ def _safe_str(val: Any, max_len: int = 0) -> str:
     if max_len and len(s) > max_len:
         return s[:max_len] + "..."
     return s
+
+
+def _esc(val: Any, max_len: int = 0) -> str:
+    """_safe_str, escaped for ReportLab Paragraph markup (blocks <img>, <link>, etc. injection)."""
+    return escape(_safe_str(val, max_len))
 
 
 def generate_meeting_pdf(
@@ -58,12 +64,12 @@ def generate_meeting_pdf(
     elements = []
 
     # Header
-    elements.append(Paragraph(_safe_str(title) or "Meeting Report", h1))
-    elements.append(Paragraph(f"Room: {room_name}", meta_style))
+    elements.append(Paragraph(_esc(title) or "Meeting Report", h1))
+    elements.append(Paragraph(f"Room: {_esc(room_name)}", meta_style))
     if created_at:
-        elements.append(Paragraph(f"Started: {created_at}", meta_style))
+        elements.append(Paragraph(f"Started: {_esc(created_at)}", meta_style))
     if ended_at:
-        elements.append(Paragraph(f"Ended: {ended_at}", meta_style))
+        elements.append(Paragraph(f"Ended: {_esc(ended_at)}", meta_style))
     elements.append(Paragraph(f"Exported: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}", meta_style))
     elements.append(HRFlowable(width="100%", thickness=1, color=colors.lightgrey, spaceAfter=8))
 
@@ -72,7 +78,7 @@ def generate_meeting_pdf(
     if summaries:
         elements.append(Paragraph("Meeting Summary", h2))
         for s in summaries:
-            elements.append(Paragraph(_safe_str(s.get("content")), body))
+            elements.append(Paragraph(_esc(s.get("content")), body))
             elements.append(Spacer(1, 4))
 
     # Key Points (notes not classified as summary)
@@ -83,9 +89,9 @@ def generate_meeting_pdf(
         for note in key_points:
             section = _safe_str(note.get("section")) or _safe_str(note.get("type")).removeprefix("key_point:")
             if section and section != current_section:
-                elements.append(Paragraph(f"<b>{section}</b>", bullet))
+                elements.append(Paragraph(f"<b>{escape(section)}</b>", bullet))
                 current_section = section
-            content = _safe_str(note.get("content"))
+            content = _esc(note.get("content"))
             if content:
                 elements.append(Paragraph(f"• {content}", bullet))
 
@@ -117,12 +123,12 @@ def generate_meeting_pdf(
     if decisions:
         elements.append(Paragraph("Decisions", h2))
         for d in decisions:
-            title_text = _safe_str(d.get("title"), 120)
+            title_text = _esc(d.get("title"), 120)
             elements.append(Paragraph(f"<b>{title_text}</b>", body))
             if d.get("chosen"):
-                elements.append(Paragraph(f"Chosen: {_safe_str(d['chosen'])}", bullet))
+                elements.append(Paragraph(f"Chosen: {_esc(d['chosen'])}", bullet))
             if d.get("analysis"):
-                elements.append(Paragraph(_safe_str(d["analysis"], 400), bullet))
+                elements.append(Paragraph(_esc(d["analysis"], 400), bullet))
             elements.append(Spacer(1, 6))
 
     # Transcript (abbreviated — only first 100 segments to keep PDF manageable)
@@ -130,8 +136,8 @@ def generate_meeting_pdf(
         elements.append(Paragraph("Transcript", h2))
         shown = transcripts[:100]
         for seg in shown:
-            speaker = _safe_str(seg.get("speaker")) or "Participant"
-            text = _safe_str(seg.get("text"))
+            speaker = _esc(seg.get("speaker")) or "Participant"
+            text = _esc(seg.get("text"))
             if text:
                 elements.append(Paragraph(f"<b>[{speaker}]</b> {text}", bullet))
         if len(transcripts) > 100:

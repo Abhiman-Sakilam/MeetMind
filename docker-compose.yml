@@ -4,7 +4,7 @@ services:
     build: ./ai-brain-orchestration
     container_name: ai-brain
     ports:
-      - "8100:8100"
+      - "127.0.0.1:8100:8100"
     env_file: ./ai-brain-orchestration/.env
     environment:
       # Redis on the same Docker network — makes brain state survive restarts and
@@ -26,7 +26,7 @@ services:
     image: redis:7-alpine
     container_name: ai-brain-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redisdata:/data
     restart: unless-stopped
@@ -45,7 +45,7 @@ services:
       POSTGRES_PASSWORD: meetmind
       POSTGRES_DB: meetmind
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -67,8 +67,8 @@ services:
       - ./model-cache/tts:/root/.local/share/tts
     environment:
       - DATABASE_URL=postgresql+asyncpg://meetmind:meetmind@db:5432/meetmind
-      - TURN_USERNAME=e8dd65b92f4b1be9e83b7aba
-      - TURN_CREDENTIAL=5VaICfL5HVBCrlGf
+      - TURN_USERNAME=${TURN_USERNAME:-}
+      - TURN_CREDENTIAL=${TURN_CREDENTIAL:-}
       - HF_HOME=/app/.cache/huggingface
       - HF_TOKEN=${HF_TOKEN:-}
       - STT_MODEL_NAME=${STT_MODEL_NAME:-distil-medium.en}
@@ -80,8 +80,8 @@ services:
       - AI_BRAIN_SERVICE_TOKEN=${AI_BRAIN_SERVICE_TOKEN:-}
       - TTS_MODEL_NAME=${TTS_MODEL_NAME:-tts_models/en/vctk/vits}
       - TTS_DEVICE=${TTS_DEVICE:-cpu}
-      # Auth: JWT signing secret. Override with a strong value in prod (host env or root .env).
-      - JWT_SECRET=${JWT_SECRET:-dev-meetmind-jwt-secret-change-me-0123456789abcdef}
+      # Auth: JWT signing secret (set in .env). Empty = random per start, logins reset on restart.
+      - JWT_SECRET=${JWT_SECRET:-}
       # Google Sign-In: OAuth 2.0 Web client ID (Google Cloud Console). Empty = Google login disabled.
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
     depends_on:

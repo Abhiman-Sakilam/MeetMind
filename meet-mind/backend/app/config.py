@@ -62,6 +62,11 @@ class Settings(BaseSettings):
     def empty_stt_prompt_means_default(self) -> Self:
         if not self.stt_initial_prompt.strip():
             self.stt_initial_prompt = _STT_INITIAL_PROMPT_DEFAULT
+        if not self.jwt_secret:
+            # No secret configured: use a random per-process one (logins reset on restart)
+            # rather than a guessable default. Set JWT_SECRET to keep sessions across restarts.
+            import secrets
+            self.jwt_secret = secrets.token_urlsafe(48)
         return self
 
     class Config:

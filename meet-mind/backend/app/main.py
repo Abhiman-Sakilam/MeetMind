@@ -53,10 +53,18 @@ class RoomManager:
         self.user_meta: dict[str, dict] = {}
         # At most one screen sharer per room: room_id -> (user_id, user_name)
         self.screen_share_owner: dict[str, tuple[str, str] | None] = {}
+        # Which authenticated account owns each (room_id, client user_id) slot
+        self.slot_owner: dict[tuple[str, str], str] = {}
 
-    async def connect(self, room_id: str, user_id: str, ws: WebSocket):
+    def is_taken_by_other(self, room_id: str, user_id: str, sub: str) -> bool:
+        owner = self.slot_owner.get((room_id, user_id))
+        return owner is not None and owner != sub
+
+    async def connect(self, room_id: str, user_id: str, ws: WebSocket, sub: str = ""):
         await ws.accept()
         self.rooms.setdefault(room_id, {})[user_id] = ws
+        if sub:
+            self.slot_owner[(room_id, user_id)] = sub
 
     def disconnect(self, room_id: str, user_id: str):
         room = self.rooms.get(room_id)
@@ -65,6 +73,7 @@ class RoomManager:
             if not room:
                 del self.rooms[room_id]
         self.user_meta.pop(user_id, None)
+        self.slot_owner.pop((room_id, user_id), None)
 
     async def broadcast(self, room_id: str, message: dict, exclude: str | None = None):
         room = self.rooms.get(room_id, {})
@@ -1148,6 +1157,11 @@ async def auth_google(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db
         db.add(user)
         await db.commit()
         await db.refresh(user)
+    elif not user.hashed_password.startswith("!"):
+        # Password signup never verified the email; Google just did. Drop that password so
+        # whoever registered this address first (possibly not its owner) can't keep access.
+        user.hashed_password = "!google-oauth-no-password"
+        await db.commit()
 
     token = create_access_token(user.id, user.email, user.display_name or name)
     return {"access_token": token, "token_type": "bearer", "display_name": user.display_name or name}
@@ -1243,7 +1257,11 @@ async def websocket_signaling(websocket: WebSocket, room_id: str, user_id: str, 
         if not is_member:
             await websocket.close(code=1008)
             return
-    await manager.connect(room_id, user_id, websocket)
+    # user_id is a client-chosen per-tab id; never let one account take over another's connection.
+    if manager.is_taken_by_other(room_id, user_id, sub):
+        await websocket.close(code=1008)
+        return
+    await manager.connect(room_id, user_id, websocket, sub)
 
     try:
         while True:
