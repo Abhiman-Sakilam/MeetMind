@@ -1,0 +1,73 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: meetmind-db
+    environment:
+      POSTGRES_USER: meetmind
+      POSTGRES_PASSWORD: meetmind
+      POSTGRES_DB: meetmind
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetmind"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: meetmind-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf_cache:/app/.cache/huggingface
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://meetmind:meetmind@db:5432/meetmind
+      - TURN_USERNAME=e8dd65b92f4b1be9e83b7aba
+      - TURN_CREDENTIAL=5VaICfL5HVBCrlGf
+      - HF_HOME=/app/.cache/huggingface
+      # Optional: higher HF Hub rate limits for faster first-time model download
+      - HF_TOKEN=${HF_TOKEN:-}
+      - STT_MODEL_NAME=${STT_MODEL_NAME:-distil-medium.en}
+      - STT_DEVICE=${STT_DEVICE:-cpu}
+      - STT_COMPUTE_TYPE=${STT_COMPUTE_TYPE:-int8}
+      - STT_INITIAL_PROMPT=${STT_INITIAL_PROMPT:-}
+      # AI Brain on host machine (run ai-brain-orchestration on port 8100)
+      - AI_BRAIN_BASE_URL=${AI_BRAIN_BASE_URL:-http://host.docker.internal:8100}
+      - AI_BRAIN_SERVICE_TOKEN=${AI_BRAIN_SERVICE_TOKEN:-}
+      # TTS — Coqui TTS model (empty to disable)
+      - TTS_MODEL_NAME=${TTS_MODEL_NAME:-tts_models/en/vctk/vits}
+      - TTS_DEVICE=${TTS_DEVICE:-cpu}
+      # Auth: JWT signing secret (override via meet-mind/.env or host env for prod).
+      - JWT_SECRET=${JWT_SECRET:-dev-meetmind-jwt-secret-change-me-0123456789abcdef}
+      # Google Sign-In OAuth Web client ID (set GOOGLE_CLIENT_ID in meet-mind/.env). Empty = disabled.
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      network: host
+    container_name: meetmind-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  hf_cache:

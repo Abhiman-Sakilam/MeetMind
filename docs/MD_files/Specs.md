@@ -1,0 +1,6 @@
+- No bugs 
+- Repeated testing 
+- Should test edge cases also
+- Add if anything is necessary and if it adds satifaction on using
+- resolve bugs
+- Optimise the code and dont make it too complicated

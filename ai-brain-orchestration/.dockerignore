@@ -1,0 +1,9 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+.env
+graphify-out
+tests
+*.sh
+README.md

@@ -1,12 +1,20 @@
-# GPU STT: use with base compose and a .env that sets STT_DEVICE=cuda and STT_COMPUTE_TYPE=float16
-#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
-# Host: install NVIDIA drivers + https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+# GPU override: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+# Requires: NVIDIA drivers + https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
 services:
   backend:
     build:
-      context: ./backend
+      context: ./meet-mind/backend
       dockerfile: Dockerfile.gpu
       network: host
-    gpus: all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     environment:
+      # STT stays on CPU int8 — distil-medium.en on cuda float16 produces empty transcriptions
+      - STT_DEVICE=cpu
+      - STT_COMPUTE_TYPE=int8
       - TTS_DEVICE=cuda
