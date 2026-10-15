@@ -1,0 +1,35 @@
+# Secrets (keep .env.example files)
+.env
+.env.*
+!.env.example
+
+# Local data
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / build output
+node_modules/
+dist/
+dist-ssr/
+*.log
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+
+# Local tooling output
+.remember/
+graphify-out/

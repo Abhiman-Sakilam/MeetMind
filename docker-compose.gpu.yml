@@ -1,0 +1,12 @@
+# GPU STT: use with base compose and a .env that sets STT_DEVICE=cuda and STT_COMPUTE_TYPE=float16
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build
+# Host: install NVIDIA drivers + https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.gpu
+      network: host
+    gpus: all
+    environment:
+      - TTS_DEVICE=cuda
