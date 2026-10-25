@@ -4,6 +4,7 @@ import { Home } from './pages/Home';
 import { MeetingRoom } from './pages/MeetingRoom';
 import { MeetingEnd } from './pages/MeetingEnd';
 import { Login } from './pages/Login';
+import { ResetPassword } from './pages/ResetPassword';
 import { useAuthStore } from './store/authStore';
 
 /** Gate protected routes — bounce to /login when there is no token. */
@@ -27,6 +28,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
         <Route path="/meeting/:roomId" element={<RequireAuth><MeetingRoom /></RequireAuth>} />
         <Route path="/meeting/:roomId/end" element={<RequireAuth><MeetingEnd /></RequireAuth>} />

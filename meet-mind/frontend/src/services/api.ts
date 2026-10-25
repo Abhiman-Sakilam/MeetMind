@@ -527,6 +527,22 @@ export function authGoogle(credential: string): Promise<AuthLoginResponse> {
   });
 }
 
+/** POST /api/auth/forgot-password — email a reset link (same reply whether or not the account exists). */
+export function authForgotPassword(email: string): Promise<{ ok: boolean }> {
+  return request("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+/** POST /api/auth/reset-password — set a new password using the token from the emailed link. */
+export function authResetPassword(token: string, password: string): Promise<{ ok: boolean }> {
+  return request("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
+}
+
 /** GET /api/auth/me — resolve the current identity from the stored token. */
 export function authMe(): Promise<AuthMeResponse> {
   return request("/api/auth/me");

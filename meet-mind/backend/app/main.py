@@ -3,7 +3,7 @@ import uuid
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, UploadFile, File, Form, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, UploadFile, File, Form, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -66,14 +66,20 @@ class RoomManager:
         if sub:
             self.slot_owner[(room_id, user_id)] = sub
 
-    def disconnect(self, room_id: str, user_id: str):
+    def disconnect(self, room_id: str, user_id: str, ws: WebSocket | None = None):
+        """Remove a connection. Pass ws from the connection's own handler: a stale socket
+        then can't evict a newer one, and only that handler releases slot ownership."""
         room = self.rooms.get(room_id)
+        current = room.get(user_id) if room else None
+        if ws is not None and current is not None and current is not ws:
+            return
         if room:
             room.pop(user_id, None)
             if not room:
                 del self.rooms[room_id]
         self.user_meta.pop(user_id, None)
-        self.slot_owner.pop((room_id, user_id), None)
+        if ws is not None:
+            self.slot_owner.pop((room_id, user_id), None)
 
     async def broadcast(self, room_id: str, message: dict, exclude: str | None = None):
         room = self.rooms.get(room_id, {})
@@ -1167,6 +1173,49 @@ async def auth_google(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db
     return {"access_token": token, "token_type": "bearer", "display_name": user.display_name or name}
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
+
+
+@app.post("/api/auth/forgot-password")
+@limiter.limit("5/minute")
+async def auth_forgot_password(
+    request: Request, body: ForgotPasswordRequest, background: BackgroundTasks, db: AsyncSession = Depends(get_db)
+):
+    """Email a single-use reset link. Always answers the same way so it can't reveal which emails exist."""
+    from app.auth import create_password_reset_token
+    from app.email_service import send_password_reset_email
+
+    result = await db.execute(select(User).where(User.email == body.email.lower().strip()))
+    user = result.scalar_one_or_none()
+    if user:
+        token = create_password_reset_token(user.id, user.hashed_password)
+        link = f"{settings.frontend_url.rstrip('/')}/reset-password?token={token}"
+        background.add_task(send_password_reset_email, to_address=user.email, link=link)
+    return {"ok": True}
+
+
+@app.post("/api/auth/reset-password")
+@limiter.limit("10/minute")
+async def auth_reset_password(request: Request, body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    from app.auth import decode_password_reset_token, hash_password, reset_token_matches
+
+    if len(body.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    payload = decode_password_reset_token(body.token)
+    user = await db.get(User, payload["sub"]) if payload else None
+    if not user or not reset_token_matches(payload, user.hashed_password):
+        raise HTTPException(status_code=400, detail="This reset link is invalid or has expired")
+    user.hashed_password = hash_password(body.password)
+    await db.commit()
+    return {"ok": True}
+
+
 # ---------------------------------------------------------------------------
 # Email Summary Delivery
 # ---------------------------------------------------------------------------
@@ -1399,7 +1448,7 @@ async def websocket_signaling(websocket: WebSocket, room_id: str, user_id: str, 
     finally:
         peer_id = manager.user_meta.get(user_id, {}).get("peerId")
         cleared = manager.clear_screen_share_if_user(room_id, user_id)
-        manager.disconnect(room_id, user_id)
+        manager.disconnect(room_id, user_id, websocket)
         await manager.broadcast(room_id, {
             "type": "peer_left",
             "from": user_id,

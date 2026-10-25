@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = ""
     smtp_use_tls: bool = True
+    # Public URL of the web app, used to build links in emails (e.g. password reset).
+    frontend_url: str = "http://localhost:3000"
+    password_reset_expire_minutes: int = 30
     # JWT auth. Set JWT_SECRET to a random string to enable protected routes.
     jwt_secret: str = ""
     jwt_algorithm: str = "HS256"

@@ -269,6 +269,8 @@
 .cc-divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--cc-text-30); font-size: .85rem; }
 .cc-divider::before, .cc-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.1); }
 .cc-error { padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: rgba(255,80,60,.08); border: 1px solid rgba(255,80,60,.25); color: #ff9b8a; font-size: .9rem; }
+.cc-notice { padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: rgba(80,200,120,.08); border: 1px solid rgba(80,200,120,.25); color: #8fe0a8; font-size: .9rem; line-height: 1.5; }
+.cc-forgot { justify-self: end; margin-top: -2px; font-size: .88rem; }
 .cc-tabs { display: flex; gap: 4px; padding: 4px; margin-bottom: 24px; border-radius: 999px; background: rgba(255,255,255,.04); border: 1px solid var(--cc-line); }
 .cc-tab { flex: 1; height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--cc-text-60); font: inherit; font-size: .95rem; cursor: pointer; transition: background .2s, color .2s; }
 .cc-tab:hover { color: #fff; }

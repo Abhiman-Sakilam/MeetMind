@@ -34,6 +34,43 @@ def decode_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Invalid or expired token") from exc
 
 
+def _reset_secret() -> str:
+    # Separate signing key so a reset token can never be used as a login token, or vice versa.
+    return _secret() + ":password-reset"
+
+
+def _password_fingerprint(hashed_password: str) -> str:
+    # Ties a reset token to the current password, so it stops working once the password changes.
+    import hashlib
+    return hashlib.sha256(hashed_password.encode("utf-8")).hexdigest()[:16]
+
+
+def create_password_reset_token(user_id: str, hashed_password: str) -> str:
+    from app.config import settings
+    from jose import jwt
+
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.password_reset_expire_minutes)
+    payload = {"sub": user_id, "pwd": _password_fingerprint(hashed_password), "exp": expire}
+    return jwt.encode(payload, _reset_secret(), algorithm=settings.jwt_algorithm)
+
+
+def decode_password_reset_token(token: str) -> dict | None:
+    """Return the token payload, or None if it is malformed or expired."""
+    from app.config import settings
+    from jose import JWTError, jwt
+
+    try:
+        return jwt.decode(token, _reset_secret(), algorithms=[settings.jwt_algorithm])
+    except JWTError:
+        return None
+
+
+def reset_token_matches(payload: dict, hashed_password: str) -> bool:
+    """False once the password has changed since the token was issued (i.e. link already used)."""
+    import hmac
+    return hmac.compare_digest(str(payload.get("pwd", "")), _password_fingerprint(hashed_password))
+
+
 def hash_password(plain: str) -> str:
     import bcrypt
     # bcrypt only uses the first 72 bytes; truncate to avoid modern bcrypt's

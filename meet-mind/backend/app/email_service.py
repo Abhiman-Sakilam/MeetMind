@@ -122,3 +122,62 @@ async def send_summary_email(
         use_tls=settings.smtp_use_tls,
     )
     _logger.info("Summary email sent successfully to %s", to_addresses)
+
+
+async def send_password_reset_email(*, to_address: str, link: str) -> None:
+    """Email a password-reset link. Without SMTP, log the link so local development still works.
+
+    Runs as a background task, so failures are logged rather than raised."""
+    from app.config import settings
+
+    if not _is_configured():
+        # The link grants account access, so only print it for local development.
+        from urllib.parse import urlparse
+        if urlparse(settings.frontend_url).hostname in ("localhost", "127.0.0.1"):
+            _logger.warning("SMTP not configured. Local dev password reset link for %s: %s", to_address, link)
+        else:
+            _logger.warning("SMTP not configured; password reset email for %s not sent", to_address)
+        return
+
+    import aiosmtplib
+
+    minutes = settings.password_reset_expire_minutes
+    text = (
+        "We received a request to reset your MeetMind password.\n\n"
+        f"Choose a new password here (the link expires in {minutes} minutes):\n{link}\n\n"
+        "If you didn't ask for this, you can ignore this email."
+    )
+    html = f"""<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'></head>
+<body style='font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#111'>
+  <h2 style='margin:0 0 12px'>Reset your MeetMind password</h2>
+  <p style='font-size:14px;line-height:1.6'>We received a request to reset your password.
+     This link expires in {minutes} minutes.</p>
+  <p style='margin:24px 0'>
+    <a href='{link}' style='background:#fa6114;color:#fff;padding:12px 22px;border-radius:999px;
+       text-decoration:none;font-weight:bold;font-size:14px'>Choose a new password</a>
+  </p>
+  <p style='font-size:12px;color:#6B7280'>If you didn't ask for this, you can ignore this email.</p>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "Reset your MeetMind password"
+    msg["From"] = settings.smtp_from or settings.smtp_user
+    msg["To"] = to_address
+    msg.attach(MIMEText(text, "plain"))
+    msg.attach(MIMEText(html, "html"))
+
+    try:
+        await aiosmtplib.send(
+            msg,
+            hostname=settings.smtp_host,
+            port=settings.smtp_port,
+            username=settings.smtp_user,
+            password=settings.smtp_password,
+            use_tls=settings.smtp_use_tls,
+        )
+        _logger.info("Password reset email sent to %s", to_address)
+    except Exception:
+        _logger.exception("Password reset email to %s failed", to_address)

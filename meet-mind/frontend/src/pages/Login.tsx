@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, ArrowUpRight, AudioLines } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { ApiError } from '../services/api';
+import { ApiError, authForgotPassword } from '../services/api';
 
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'forgot';
 
 /** GIS Web client ID — when empty/undefined the Google button is not rendered. */
 const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim();
 
 export function Login() {
   const navigate = useNavigate();
+  // Set by the reset-password page after a successful reset.
+  const initialNotice = (useLocation().state as { notice?: string } | null)?.notice ?? null;
   const login = useAuthStore((s) => s.login);
   const register = useAuthStore((s) => s.register);
   const googleLogin = useAuthStore((s) => s.googleLogin);
@@ -21,10 +23,12 @@ export function Login() {
   const [displayName, setDisplayName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(initialNotice);
 
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
 
   const isRegister = mode === 'register';
+  const isForgot = mode === 'forgot';
 
   // Initialize Google Identity Services once the async GIS script has loaded.
   // Skipped entirely when no client ID is configured.
@@ -87,14 +91,22 @@ export function Login() {
     if (next === mode) return;
     setMode(next);
     setError(null);
+    setNotice(null);
   };
 
+  const canSubmit =
+    !!email.trim() && (isForgot || !!password.trim()) && (!isRegister || !!displayName.trim()) && !busy;
+
   const submit = async () => {
-    if (busy) return;
-    if (!email.trim() || !password.trim() || (isRegister && !displayName.trim())) return;
+    if (!canSubmit) return;
     setError(null);
     setBusy(true);
     try {
+      if (isForgot) {
+        await authForgotPassword(email.trim());
+        setNotice(`If an account exists for ${email.trim()}, a reset link is on its way. It expires in 30 minutes.`);
+        return;
+      }
       if (isRegister) {
         await register(email.trim(), password, displayName.trim());
       } else {
@@ -118,10 +130,6 @@ export function Login() {
     if (e.key === 'Enter') submit();
   };
 
-
-  const canSubmit =
-    !!email.trim() && !!password.trim() && (!isRegister || !!displayName.trim()) && !busy;
-
   return (
     <div className="cc-page cc-auth">
       <div className="cc-bg" />
@@ -134,15 +142,19 @@ export function Login() {
 
       {/* Card */}
       <div className="cc-dialog">
-        <h3 className="cc-dialog-title">{isRegister ? 'Create your account' : 'Welcome back'}</h3>
+        <h3 className="cc-dialog-title">
+          {isForgot ? 'Reset your password' : isRegister ? 'Create your account' : 'Welcome back'}
+        </h3>
         <p className="cc-dialog-sub">
-          {isRegister
-            ? 'Sign up to start meetings that think with you.'
-            : 'Log in to rejoin your AI-powered meetings.'}
+          {isForgot
+            ? "Enter your account email and we'll send you a link to choose a new password."
+            : isRegister
+              ? 'Sign up to start meetings that think with you.'
+              : 'Log in to rejoin your AI-powered meetings.'}
         </p>
 
         {/* Tabs */}
-        <div className="cc-tabs" role="tablist">
+        {!isForgot && <div className="cc-tabs" role="tablist">
           {(['login', 'register'] as Mode[]).map((m) => (
             <button
               key={m}
@@ -154,11 +166,12 @@ export function Login() {
               {m === 'login' ? 'Log In' : 'Sign Up'}
             </button>
           ))}
-        </div>
+        </div>}
 
         {error && <div role="alert" className="cc-error">{error}</div>}
+        {notice && <div role="status" className="cc-notice">{notice}</div>}
 
-        <div className="cc-fields">
+        {!(isForgot && notice) && <div className="cc-fields">
           {isRegister && (
             <input
               type="text"
@@ -179,39 +192,46 @@ export function Login() {
             className="cc-input"
             autoComplete="email"
           />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Password *"
-            className="cc-input"
-            autoComplete={isRegister ? 'new-password' : 'current-password'}
-          />
+          {!isForgot && (
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Password *"
+              className="cc-input"
+              autoComplete={isRegister ? 'new-password' : 'current-password'}
+            />
+          )}
+          {mode === 'login' && (
+            <button type="button" onClick={() => switchMode('forgot')} className="cc-link cc-forgot">
+              Forgot password?
+            </button>
+          )}
           <button onClick={submit} disabled={!canSubmit} className="cc-btn cc-btn-primary cc-btn-block" style={{ height: 52, marginTop: 8 }}>
             {busy ? (
               <Loader2 size={18} className="animate-spin" />
             ) : (
               <>
-                {isRegister ? 'Create Account' : 'Log In'}
+                {isForgot ? 'Send reset link' : isRegister ? 'Create Account' : 'Log In'}
                 <ArrowUpRight size={18} className="cc-arrow" />
               </>
             )}
           </button>
-        </div>
+        </div>}
 
+        {/* Hidden (not unmounted) in forgot mode: GIS renders its button into this container only once */}
         {GOOGLE_CLIENT_ID && (
-          <>
+          <div hidden={isForgot}>
             <div className="cc-divider">or</div>
-            {/* Google Identity Services renders its button into this container */}
             <div ref={googleBtnRef} style={{ display: 'flex', justifyContent: 'center', minHeight: 44 }} />
-          </>
+          </div>
         )}
 
         <div style={{ textAlign: 'center', marginTop: 24, fontSize: '.92rem', color: 'var(--cc-text-60)' }}>
-          {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button onClick={() => switchMode(isRegister ? 'login' : 'register')} className="cc-link">
-            {isRegister ? 'Log in' : 'Sign up'}
+          {isForgot ? 'Remembered it?' : isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
+          <button onClick={() => switchMode(mode === 'login' ? 'register' : 'login')} className="cc-link">
+            {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>
         </div>
       </div>
