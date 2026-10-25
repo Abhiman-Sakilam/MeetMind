@@ -96,6 +96,8 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export type MeetingSummary = { id: string; roomName: string; title: string; status: string; createdAt: string | null; endedAt: string | null; durationMinutes: number | null };
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -341,8 +343,10 @@ export const api = {
     return request(`/api/meetings/${roomName}/end`, { method: "POST" });
   },
 
-  listMeetings(): Promise<{ id: string; roomName: string; title: string; status: string; createdAt: string | null; endedAt: string | null; durationMinutes: number | null }[]> {
-    return request("/api/meetings");
+  async listMeetings(): Promise<MeetingSummary[]> {
+    // Backend returns a paginated envelope: { total, page, limit, pages, meetings }.
+    const res = await request<{ meetings?: MeetingSummary[] }>("/api/meetings");
+    return res.meetings ?? [];
   },
 
   /** Lightweight: store raw speech chunk for notes, no LLM, instant. */
