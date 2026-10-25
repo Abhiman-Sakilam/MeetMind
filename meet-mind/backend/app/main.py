@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, UploadFile, File, Form, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -625,8 +625,9 @@ async def assistant_notes_append_raw(body: NotesAppendRawRequest, db: AsyncSessi
 
 
 class TTSSynthRequest(BaseModel):
-    text: str
-    speaker_wav: str | None = None
+    # Cloud TTS bills per character; the UI only speaks the first 1-2 sentences.
+    text: str = Field(max_length=1000)
+    speaker_wav: str | None = Field(default=None, max_length=512)
 
 
 @app.post("/api/assistant/tts")
