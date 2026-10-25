@@ -118,7 +118,7 @@ export function NotesCard({ notes }: Props) {
                     {sec.section && (
                       <div style={{
                         fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase',
-                        letterSpacing: '.05em', color: 'rgba(255,215,0,.75)', marginBottom: '.3rem',
+                        letterSpacing: '.05em', color: 'rgba(255,176,103,.75)', marginBottom: '.3rem',
                       }}>
                         {sec.section}
                       </div>

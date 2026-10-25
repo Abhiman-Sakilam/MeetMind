@@ -238,9 +238,9 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
         display: 'flex',
         flexDirection: 'column',
         background:
-          'linear-gradient(165deg,rgba(0,255,204,.035) 0%,rgba(8,12,22,.96) 45%,rgba(6,10,18,.98) 100%)',
+          'linear-gradient(165deg,rgba(250,97,20,.035) 0%,rgba(16,11,8,.96) 45%,rgba(9,4,1,.98) 100%)',
         backdropFilter: 'blur(28px)',
-        border: '1px solid rgba(0,255,204,.12)',
+        border: '1px solid rgba(250,97,20,.12)',
         borderRadius: 20,
         boxShadow: '0 8px 32px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04)',
         overflow: 'hidden',
@@ -254,21 +254,21 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
           <button type="button" role="tab" aria-selected={panelMode==='jarvis'} onClick={() => setPanelMode('jarvis')} style={{
             display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:100, border:'none', cursor:'pointer',
             fontSize:'.7rem', fontWeight:700, letterSpacing:.5, transition:'all .2s',
-            background: panelMode==='jarvis' ? 'linear-gradient(135deg,#00ffcc,#0088ff)' : 'transparent',
+            background: panelMode==='jarvis' ? 'linear-gradient(135deg,#fa6114,#e2571f)' : 'transparent',
             color: panelMode==='jarvis' ? '#000' : 'rgba(255,255,255,.4)',
-            boxShadow: panelMode==='jarvis' ? '0 0 16px rgba(0,255,204,.4)' : 'none',
+            boxShadow: panelMode==='jarvis' ? '0 0 16px rgba(250,97,20,.4)' : 'none',
           }}><BrainCircuit size={11} /> JARVIS</button>
           <button type="button" role="tab" aria-selected={panelMode==='chat'} onClick={() => setPanelMode('chat')} style={{
             display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:100, border:'none', cursor:'pointer',
             fontSize:'.7rem', fontWeight:700, letterSpacing:.5, transition:'all .2s',
             background: panelMode==='chat' ? 'rgba(255,255,255,.12)' : 'transparent',
             color: panelMode==='chat' ? '#fff' : 'rgba(255,255,255,.4)',
-          }}><MessageSquare size={11} /> CHAT {chatMessages.length>0&&panelMode!=='chat'&&<span style={{width:5,height:5,borderRadius:'50%',background:'#00ffcc',display:'inline-block'}}/>}</button>
+          }}><MessageSquare size={11} /> CHAT {chatMessages.length>0&&panelMode!=='chat'&&<span style={{width:5,height:5,borderRadius:'50%',background:'#fa6114',display:'inline-block'}}/>}</button>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           {panelMode==='jarvis' && (
             <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:'.62rem', letterSpacing:1, textTransform:'uppercase' }}>
-              {brainStatus==='ok'       && <><span style={{width:6,height:6,borderRadius:'50%',background:'#00ffcc',boxShadow:'0 0 6px #00ffcc'}}/>      <span style={{color:'#00ffcc'}}>Online</span></>}
+              {brainStatus==='ok'       && <><span style={{width:6,height:6,borderRadius:'50%',background:'#fa6114',boxShadow:'0 0 6px #fa6114'}}/>      <span style={{color:'#fa6114'}}>Online</span></>}
               {brainStatus==='offline'  && <><span style={{width:6,height:6,borderRadius:'50%',background:'#ff8844'}}/><span style={{color:'#ff8844'}}>Offline</span></>}
               {brainStatus==='checking' && <Loader2 size={10} className="animate-spin" style={{color:'rgba(255,255,255,.3)'}}/>}
             </span>
@@ -345,9 +345,9 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
           <div key={msg.id} style={{ display:'flex', justifyContent:msg.isLocal?'flex-end':'flex-start' }}>
             <div style={{
               maxWidth:'85%', borderRadius:14, padding:'.55rem .9rem', fontSize:'.82rem', lineHeight:1.5,
-              background: msg.isLocal?'linear-gradient(135deg,rgba(0,255,204,.15),rgba(0,136,255,.15))':'rgba(255,255,255,.06)',
-              border: msg.isLocal?'1px solid rgba(0,255,204,.25)':'1px solid rgba(255,255,255,.08)',
-              color: msg.isLocal?'#00ffcc':'rgba(255,255,255,.85)',
+              background: msg.isLocal?'linear-gradient(135deg,rgba(250,97,20,.15),rgba(226,87,31,.15))':'rgba(255,255,255,.06)',
+              border: msg.isLocal?'1px solid rgba(250,97,20,.25)':'1px solid rgba(255,255,255,.08)',
+              color: msg.isLocal?'#fa6114':'rgba(255,255,255,.85)',
               borderBottomRightRadius: msg.isLocal?4:14,
               borderBottomLeftRadius: msg.isLocal?14:4,
             }}>
@@ -368,9 +368,9 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
             <button type="button" onClick={() => setTtsEnabled(!ttsEnabled)} aria-pressed={ttsEnabled} style={{
               display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:100,
               fontSize:'.62rem', fontWeight:700, textTransform:'uppercase', letterSpacing:1, cursor:'pointer', transition:'all .2s',
-              background: ttsEnabled?'rgba(0,255,204,.12)':'rgba(255,255,255,.05)',
-              border: ttsEnabled?'1px solid rgba(0,255,204,.3)':'1px solid rgba(255,255,255,.1)',
-              color: ttsEnabled?'#00ffcc':'rgba(255,255,255,.4)',
+              background: ttsEnabled?'rgba(250,97,20,.12)':'rgba(255,255,255,.05)',
+              border: ttsEnabled?'1px solid rgba(250,97,20,.3)':'1px solid rgba(255,255,255,.1)',
+              color: ttsEnabled?'#fa6114':'rgba(255,255,255,.4)',
             }}>
               {ttsEnabled?<Volume2 size={11}/>:<VolumeX size={11}/>} TTS {ttsEnabled?'On':'Off'}
             </button>
@@ -379,8 +379,8 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
         <div style={{
           display:'flex', alignItems:'center', gap:5,
           background:'rgba(0,0,0,.4)', borderRadius:12,
-          border: isRecordingVoice&&panelMode==='jarvis'?'1px solid rgba(0,255,204,.4)':'1px solid rgba(255,255,255,.1)',
-          boxShadow: isRecordingVoice&&panelMode==='jarvis'?'0 0 12px rgba(0,255,204,.1)':'none',
+          border: isRecordingVoice&&panelMode==='jarvis'?'1px solid rgba(250,97,20,.4)':'1px solid rgba(255,255,255,.1)',
+          boxShadow: isRecordingVoice&&panelMode==='jarvis'?'0 0 12px rgba(250,97,20,.1)':'none',
           transition:'all .2s',
         }}>
           <input type="text"
@@ -395,7 +395,7 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
             placeholder={panelMode==='chat'?'Message participants…':isRecordingVoice?(liveCaption?'':'Listening…'):'Ask Jarvis…'}
             disabled={panelMode==='jarvis'&&(isChatSending||isRecordingVoice)}
             readOnly={panelMode==='jarvis'&&isRecordingVoice}
-            style={{ flex:1, minWidth:0, background:'transparent', padding:'.6rem .7rem', fontSize:'.82rem', color:'#fff', outline:'none', fontFamily:"'Space Grotesk',sans-serif" }}
+            style={{ flex:1, minWidth:0, background:'transparent', padding:'.6rem .7rem', fontSize:'.82rem', color:'#fff', outline:'none', fontFamily:"var(--font-body)" }}
           />
           {panelMode==='jarvis' && (
             <button type="button" aria-label={isRecordingVoice ? 'Recording — stop' : 'Start voice recording'} onClick={() => { void startVoiceRecording(); }}
@@ -403,7 +403,7 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
               style={{
                 width:30, height:30, borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center',
                 cursor:'pointer', border:'none', transition:'all .2s', flexShrink:0,
-                background: isRecordingVoice?'#00ffcc':'rgba(255,255,255,.08)',
+                background: isRecordingVoice?'#fa6114':'rgba(255,255,255,.08)',
                 color: isRecordingVoice?'#000':'rgba(255,255,255,.5)',
                 animation: isRecordingVoice?'orb-breathe 1.5s ease-in-out infinite':'none',
               }}><Mic size={14}/></button>
@@ -415,9 +415,9 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
             style={{
               width:30, height:30, marginRight:4, borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center',
               cursor:'pointer', border:'none', transition:'all .2s', flexShrink:0,
-              background: input.trim()?'linear-gradient(135deg,#00ffcc,#0088ff)':'rgba(255,255,255,.06)',
+              background: input.trim()?'linear-gradient(135deg,#fa6114,#e2571f)':'rgba(255,255,255,.06)',
               color: input.trim()?'#000':'rgba(255,255,255,.25)',
-              boxShadow: input.trim()?'0 0 12px rgba(0,255,204,.3)':'none',
+              boxShadow: input.trim()?'0 0 12px rgba(250,97,20,.3)':'none',
             }}>
             {isChatSending&&panelMode==='jarvis'?<Loader2 size={14} className="animate-spin"/>:<Send size={14}/>}
           </button>
@@ -452,17 +452,17 @@ export function AssistantPanel({ assistantUserId, meetingRoomId }: AssistantPane
 // ── Typing dots indicator ─────────────────────────────────────────────────
 function ThinkingIndicator({ isThinking }: { isThinking: boolean }) {
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:8, padding:'.55rem .9rem', background:'rgba(0,255,204,.06)', border:'1px solid rgba(0,255,204,.13)', borderRadius:12, width:'fit-content' }}>
+    <div style={{ display:'flex', alignItems:'center', gap:8, padding:'.55rem .9rem', background:'rgba(250,97,20,.06)', border:'1px solid rgba(250,97,20,.13)', borderRadius:12, width:'fit-content' }}>
       <div style={{ display:'flex', gap:3, alignItems:'center' }}>
         {[0,1,2].map((i) => (
           <span key={i} style={{
-            width: 5, height: 5, borderRadius:'50%', background:'#00ffcc',
+            width: 5, height: 5, borderRadius:'50%', background:'#fa6114',
             display:'inline-block',
             animation: `typing-dot 1.2s ease-in-out ${i * 0.2}s infinite`,
           }} />
         ))}
       </div>
-      <span style={{ fontSize:'.75rem', color:'rgba(0,255,204,.8)', letterSpacing:'.02em' }}>
+      <span style={{ fontSize:'.75rem', color:'rgba(250,97,20,.8)', letterSpacing:'.02em' }}>
         {isThinking ? 'Thinking…' : 'Quick response…'}
       </span>
     </div>

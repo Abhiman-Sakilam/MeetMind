@@ -64,10 +64,10 @@ export function MeetingControls({ localUserId, beginLocalScreenShare, stopLocalS
     <>
       {takeoverOpen && (
         <div style={{ position:'fixed', inset:'0 0 auto', bottom:'5.5rem', zIndex:200, display:'flex', justifyContent:'center', padding:'0 1rem', pointerEvents:'none' }}>
-          <div role="dialog" aria-modal="true" aria-label="Screen share takeover confirmation" style={{ pointerEvents:'auto', background:'rgba(15,15,15,.9)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,.12)', borderRadius:16, padding:'1rem 1.5rem', display:'flex', alignItems:'center', gap:'1rem' }}>
+          <div role="dialog" aria-modal="true" aria-label="Screen share takeover confirmation" style={{ pointerEvents:'auto', background:'rgba(16,11,8,.9)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,.12)', borderRadius:16, padding:'1rem 1.5rem', display:'flex', alignItems:'center', gap:'1rem' }}>
             <p style={{ fontSize:'.85rem', flex:1 }}><strong>{activeScreenUserName || 'Someone'}</strong> is presenting. Take over?</p>
             <button onClick={() => setTakeoverOpen(false)} style={{ padding:'.4rem .9rem', borderRadius:8, background:'rgba(255,255,255,.1)', border:'1px solid rgba(255,255,255,.15)', color:'#fff', cursor:'pointer', fontSize:'.8rem' }}>No</button>
-            <button onClick={confirmTakeover} style={{ padding:'.4rem .9rem', borderRadius:8, background:'#00ffcc', color:'#000', border:'none', cursor:'pointer', fontSize:'.8rem', fontWeight:700 }}>Yes</button>
+            <button onClick={confirmTakeover} style={{ padding:'.4rem .9rem', borderRadius:8, background:'#fa6114', color:'#000', border:'none', cursor:'pointer', fontSize:'.8rem', fontWeight:700 }}>Yes</button>
           </div>
         </div>
       )}

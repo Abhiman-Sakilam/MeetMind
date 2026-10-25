@@ -92,13 +92,13 @@ export function VideoTile({
               'jarvis-user-avatar-stage flex shrink-0 items-center justify-center font-bold text-[var(--accent-spatial)]',
               listeningAura && 'jarvis-user-avatar-stage--listening',
             )}
-            style={{ fontFamily: "'Syne', 'Outfit', sans-serif" }}
+            style={{ fontFamily: "var(--font-display)" }}
           >
             {initials}
           </div>
           <p
             className="mt-5 text-xs font-medium uppercase tracking-[0.18em] text-cyan-400/70"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ fontFamily: "var(--font-body)" }}
           >
             Camera off
           </p>

@@ -67,7 +67,7 @@ export function VideoGrid() {
             borderRadius: 16,
             overflow: 'hidden',
             border: '2px solid var(--accent-spatial)',
-            boxShadow: '0 0 40px rgba(0,255,204,0.3)',
+            boxShadow: '0 0 40px rgba(250,97,20,0.3)',
           }}
         >
           <VideoTile
@@ -105,9 +105,9 @@ export function VideoGrid() {
                 minHeight: 0,
                 borderRadius: 16,
                 overflow: 'hidden',
-                background: 'linear-gradient(135deg, rgba(20,20,20,.6), rgba(5,5,5,.9))',
-                border: `1px solid ${speaking ? 'rgba(0,255,204,.55)' : 'rgba(255,255,255,.1)'}`,
-                boxShadow: speaking ? '0 0 24px rgba(0,255,204,.18)' : '0 4px 20px rgba(0,0,0,.4)',
+                background: 'linear-gradient(135deg, rgba(22,15,11,.6), rgba(5,5,5,.9))',
+                border: `1px solid ${speaking ? 'rgba(250,97,20,.55)' : 'rgba(255,255,255,.1)'}`,
+                boxShadow: speaking ? '0 0 24px rgba(250,97,20,.18)' : '0 4px 20px rgba(0,0,0,.4)',
                 transition: 'border-color .3s, box-shadow .3s',
                 pointerEvents: 'auto',
               }}

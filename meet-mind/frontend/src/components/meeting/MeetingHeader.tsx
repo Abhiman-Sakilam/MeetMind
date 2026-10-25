@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Copy, Users, Check } from 'lucide-react';
+import { Copy, Users, Check, AudioLines } from 'lucide-react';
 import { useMeetingStore } from '../../store/meetingStore';
 import { api } from '../../services/api';
 
@@ -89,7 +89,7 @@ export function MeetingHeader({ onPersonaChange }: MeetingHeaderProps) {
   return (
     <header style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', right: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
       {/* Logo */}
-      <div style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 900, letterSpacing: '-1px', fontSize: '1.2rem', textTransform: 'uppercase' }}>Meet-Mind-Synthesis</div>
+      <div className="cc-logo" style={{ fontSize: '1.2rem' }}><span className="cc-logo-mark"><AudioLines size={16} strokeWidth={2.4} /></span>MeetMind</div>
 
       {/* Centre pill */}
       <div className="room-info-pill">
@@ -100,7 +100,7 @@ export function MeetingHeader({ onPersonaChange }: MeetingHeaderProps) {
           <span style={{ fontSize: '.7rem', letterSpacing: 2, color: '#ff4444' }}>● REC</span>
         </>}
         <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,.12)' }} />
-        <span style={{ fontSize: '.72rem', letterSpacing: 2, opacity: .7, fontFamily: "'Outfit',sans-serif" }}>
+        <span style={{ fontSize: '.72rem', letterSpacing: 2, opacity: .7, fontFamily: "var(--font-display)" }}>
           {meetingTitle || roomId?.slice(0, 8).toUpperCase()}
         </span>
       </div>
@@ -138,7 +138,7 @@ export function MeetingHeader({ onPersonaChange }: MeetingHeaderProps) {
               position: 'absolute',
               top: 'calc(100% + 8px)',
               right: 0,
-              background: '#1a1a2e',
+              background: '#1a120d',
               border: '1px solid rgba(255,255,255,.12)',
               borderRadius: 12,
               padding: '6px 0',
@@ -146,7 +146,7 @@ export function MeetingHeader({ onPersonaChange }: MeetingHeaderProps) {
               boxShadow: '0 8px 32px rgba(0,0,0,.5)',
               zIndex: 200,
             }}>
-              <div style={{ padding: '6px 14px 8px', fontSize: '.65rem', letterSpacing: 2, opacity: .5, textTransform: 'uppercase', fontFamily: "'Outfit',sans-serif" }}>
+              <div style={{ padding: '6px 14px 8px', fontSize: '.65rem', letterSpacing: 2, opacity: .5, textTransform: 'uppercase', fontFamily: "var(--font-display)" }}>
                 Jarvis Persona
               </div>
               {PERSONA_OPTIONS.map((opt) => (
@@ -181,7 +181,7 @@ export function MeetingHeader({ onPersonaChange }: MeetingHeaderProps) {
 
         <button onClick={copyRoomId} title="Copy meeting ID"
           style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 100, padding: '.4rem 1rem', fontSize: '.72rem', color: 'rgba(255,255,255,.7)', cursor: 'pointer' }}>
-          {copied ? <Check size={12} style={{ color: '#00ffcc' }} /> : <Copy size={12} />}
+          {copied ? <Check size={12} style={{ color: '#fa6114' }} /> : <Copy size={12} />}
           <span style={{ fontFamily: 'monospace' }}>{roomId?.slice(0, 8)}…</span>
         </button>
       </div>

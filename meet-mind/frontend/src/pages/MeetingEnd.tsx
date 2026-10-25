@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMeetingStore } from '../store/meetingStore';
-import { Download, Share2, Copy, Check, FileDown, Mail, Loader2, X } from 'lucide-react';
+import { Download, Share2, Copy, Check, FileDown, Mail, Loader2, X, ArrowUpRight, AudioLines } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { formatTranscriptMarkdown } from '../lib/formatMeetingTranscript';
@@ -59,11 +59,12 @@ export function MeetingEnd() {
   }, [roomId, storeData]);
 
   if (!data) return (
-    <div style={{ minHeight:'100vh', background:'#000', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", color:'#fff' }}>
-      <div style={{ background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.1)', borderRadius:24, padding:'3rem', maxWidth:400, textAlign:'center' }}>
-        <h2 style={{ marginBottom:'1rem' }}>No meeting data</h2>
-        <p style={{ opacity:.5, marginBottom:'2rem' }}>Session may have expired.</p>
-        <button onClick={() => navigate('/')} style={{ padding:'.8rem 2rem', background:'#ffd700', color:'#000', border:'none', borderRadius:100, fontWeight:700, cursor:'pointer' }}>Go Home</button>
+    <div className="cc-page cc-auth">
+      <div className="cc-bg" />
+      <div className="cc-dialog" style={{ maxWidth:400, textAlign:'center' }}>
+        <h2 className="cc-dialog-title">No meeting data</h2>
+        <p className="cc-dialog-sub">Session may have expired.</p>
+        <button onClick={() => navigate('/')} className="cc-btn cc-btn-primary">Go Home</button>
       </div>
     </div>
   );
@@ -119,22 +120,22 @@ export function MeetingEnd() {
   };
 
   return (
-    <div style={{ minHeight:'100vh', background:'#000', fontFamily:"'Space Grotesk',sans-serif", color:'#fff', overflowY:'auto', overflowX:'hidden',
-      backgroundImage:'radial-gradient(circle at 50% 0%, rgba(255,215,0,.05), transparent 50%), radial-gradient(circle at 100% 100%, rgba(0,255,204,.05), transparent 50%)' }}>
+    <div style={{ minHeight:'100vh', background:'var(--cc-bg)', fontFamily:'var(--font-body)', color:'var(--cc-text)', overflowY:'auto', overflowX:'hidden',
+      backgroundImage:'radial-gradient(60vmax 40vmax at 0% -10%, rgba(250,97,20,.32), transparent 60%), radial-gradient(50vmax 40vmax at 100% 110%, rgba(250,97,20,.12), transparent 60%)' }}>
       <div className="noise" />
 
       {/* Nav */}
-      <nav style={{ position:'sticky', top:0, width:'100%', padding:'1.5rem 3rem', display:'flex', justifyContent:'space-between', alignItems:'center', zIndex:100, background:'linear-gradient(to bottom,rgba(0,0,0,.8),transparent)', backdropFilter:'blur(4px)' }}>
-        <div style={{ fontFamily:"'Outfit',sans-serif", fontSize:'1.2rem', fontWeight:900, letterSpacing:'-1px', textTransform:'uppercase' }}>Meet-Mind-Synthesis</div>
+      <nav style={{ position:'sticky', top:0, width:'100%', padding:'1.5rem 3rem', display:'flex', justifyContent:'space-between', alignItems:'center', zIndex:100, background:'linear-gradient(to bottom,rgba(9,4,1,.85),transparent)', backdropFilter:'blur(4px)' }}>
+        <div className="cc-logo" style={{ fontSize:'1.25rem' }}><span className="cc-logo-mark"><AudioLines size={16} strokeWidth={2.4}/></span>MeetMind</div>
         <div style={{ display:'flex', gap:'.8rem', alignItems:'center', flexWrap:'wrap' }}>
           <button onClick={download} title="Download Markdown" aria-label="Download Markdown" className="icon-btn"><Download size={16}/></button>
-          <button onClick={downloadPdf} title="Export PDF" aria-label="Export PDF" disabled={pdfLoading} className="icon-btn" style={ pdfLoading ? { background:'rgba(255,215,0,.15)', borderColor:'rgba(255,215,0,.4)', color:'#ffd700' } : undefined }>
+          <button onClick={downloadPdf} title="Export PDF" aria-label="Export PDF" disabled={pdfLoading} className="icon-btn" style={ pdfLoading ? { background:'rgba(255,176,103,.15)', borderColor:'rgba(255,176,103,.4)', color:'#ffb067' } : undefined }>
             {pdfLoading ? <Loader2 size={16} style={{ animation:'spin .8s linear infinite' }}/> : <FileDown size={16}/>}
           </button>
           <button onClick={() => { setEmailOpen(true); setEmailStatus(null); }} title="Email Summary" aria-label="Email Summary" className="icon-btn"><Mail size={16}/></button>
-          <button onClick={copyAll} title="Copy" aria-label="Copy summary" className="icon-btn">{copied?<Check size={16} style={{color:'#00ffcc'}}/>:<Copy size={16}/>}</button>
+          <button onClick={copyAll} title="Copy" aria-label="Copy summary" className="icon-btn">{copied?<Check size={16} style={{color:'#fa6114'}}/>:<Copy size={16}/>}</button>
           <button onClick={shareLink} title="Share" aria-label="Share link" className="icon-btn"><Share2 size={16}/></button>
-          <button onClick={() => navigate('/')} className="pill-btn" style={{ textTransform:'uppercase', letterSpacing:1 }}>Return Home</button>
+          <button onClick={() => navigate('/')} className="cc-btn cc-btn-light cc-btn-sm">Return Home <ArrowUpRight size={16} className="cc-arrow"/></button>
         </div>
       </nav>
 
@@ -148,11 +149,11 @@ export function MeetingEnd() {
           <div
             role="dialog" aria-modal="true" aria-labelledby="email-modal-title"
             onClick={(e) => e.stopPropagation()}
-            style={{ background:'rgba(12,12,18,.95)', border:'1px solid rgba(255,255,255,.12)', borderRadius:20, padding:'2rem', width:'min(480px, 94vw)', boxShadow:'0 24px 60px rgba(0,0,0,.6)' }}
+            className="cc-dialog" style={{ maxWidth:480, width:'min(480px, 94vw)' }}
           >
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
               <div>
-                <div id="email-modal-title" style={{ fontFamily:"'Outfit',sans-serif", fontSize:'1.1rem', fontWeight:700, letterSpacing:'-0.5px' }}>Email Summary</div>
+                <div id="email-modal-title" style={{ fontFamily:'var(--font-display)', fontSize:'1.5rem', fontWeight:500, letterSpacing:'-.03em' }}>Email Summary</div>
                 <div style={{ fontSize:'.8rem', opacity:.45, marginTop:2 }}>Recipients will receive the meeting summary, action items, and decisions.</div>
               </div>
               <button onClick={() => { setEmailOpen(false); setEmailStatus(null); }} aria-label="Close email dialog" style={{ width:32, height:32, borderRadius:'50%', background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.1)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><X size={14}/></button>
@@ -165,17 +166,17 @@ export function MeetingEnd() {
               onChange={(e) => setEmailTo(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') void sendEmail(); }}
               placeholder="alice@example.com, bob@example.com"
-              className="end-input"
-              style={{ width:'100%', padding:'.75rem 1rem', background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.12)', borderRadius:12, color:'#fff', fontSize:'.9rem', boxSizing:'border-box', marginBottom:'1rem' }}
+              className="cc-input"
+              style={{ marginBottom:'1rem' }}
             />
             {emailStatus && (
-              <div style={{ padding:'.6rem 1rem', borderRadius:10, background: emailStatus.ok ? 'rgba(0,255,204,.12)' : 'rgba(255,68,68,.12)', border:`1px solid ${emailStatus.ok ? 'rgba(0,255,204,.3)' : 'rgba(255,68,68,.3)'}`, color: emailStatus.ok ? '#00ffcc' : '#ff6b6b', fontSize:'.82rem', marginBottom:'1rem' }}>
+              <div style={{ padding:'.6rem 1rem', borderRadius:10, background: emailStatus.ok ? 'rgba(250,97,20,.12)' : 'rgba(255,68,68,.12)', border:`1px solid ${emailStatus.ok ? 'rgba(250,97,20,.3)' : 'rgba(255,68,68,.3)'}`, color: emailStatus.ok ? '#fa6114' : '#ff6b6b', fontSize:'.82rem', marginBottom:'1rem' }}>
                 {emailStatus.msg}
               </div>
             )}
             <div style={{ display:'flex', gap:'.75rem', justifyContent:'flex-end' }}>
-              <button onClick={() => { setEmailOpen(false); setEmailStatus(null); }} className="pill-btn">Cancel</button>
-              <button onClick={sendEmail} disabled={emailSending || !emailTo.trim()} style={{ padding:'.6rem 1.6rem', background: emailSending ? 'rgba(255,215,0,.2)' : '#ffd700', border:'none', borderRadius:100, color: emailSending ? '#ffd700' : '#000', fontWeight:700, fontSize:'.85rem', cursor: emailSending || !emailTo.trim() ? 'not-allowed' : 'pointer', display:'flex', alignItems:'center', gap:'.4rem', opacity: !emailTo.trim() ? .45 : 1 }}>
+              <button onClick={() => { setEmailOpen(false); setEmailStatus(null); }} className="cc-btn cc-btn-subtle cc-btn-sm">Cancel</button>
+              <button onClick={sendEmail} disabled={emailSending || !emailTo.trim()} className="cc-btn cc-btn-primary cc-btn-sm">
                 {emailSending ? <><Loader2 size={14} style={{ animation:'spin .8s linear infinite' }}/> Sending…</> : 'Send'}
               </button>
             </div>
@@ -187,8 +188,8 @@ export function MeetingEnd() {
         {/* Meta card (unchanged) */}
         <div className="bento-card bento-meta interactable" style={{ animationDelay: '.1s' }}>
           <div className="card-label">Session Complete</div>
-          <h1 style={{ fontFamily:"'Outfit',sans-serif", fontSize:'clamp(2rem,5vw,3.8rem)', fontWeight:900, lineHeight:1, letterSpacing:'-2px', marginBottom:'1rem' }}>
-            {data.title.split(' ').map((w,i,arr) => i===arr.length-1 ? <em key={i} style={{ color:'#ffd700', fontStyle:'normal' }}>{w}</em> : w+' ')}
+          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(2.2rem,5vw,4.2rem)', fontWeight:500, lineHeight:1.05, letterSpacing:'-.035em', marginBottom:'1rem' }}>
+            {data.title.split(' ').map((w,i,arr) => i===arr.length-1 ? <em key={i} className="cc-accent-text" style={{ fontStyle:'normal' }}>{w}</em> : w+' ')}
           </h1>
           <p style={{ opacity:.55, maxWidth:560, lineHeight:1.65, fontSize:'.95rem' }}>
             Jarvis monitored the session and synthesized key decisions and action items in real-time.

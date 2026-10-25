@@ -370,14 +370,14 @@ export function MeetingRoom() {
   }
 
   return (
-    <div style={{ height:'100vh', background:'#030303', position:'relative', overflow:'hidden', fontFamily:"'Space Grotesk',sans-serif", color:'#fff',
-      backgroundImage:'radial-gradient(circle at 10% 40%, rgba(0,255,204,.03), transparent 30%), radial-gradient(circle at 90% 60%, rgba(255,0,255,.03), transparent 30%)' }}>
+    <div style={{ height:'100vh', background:'#090401', position:'relative', overflow:'hidden', fontFamily:"var(--font-body)", color:'#fff',
+      backgroundImage:'radial-gradient(circle at 10% 40%, rgba(250,97,20,.03), transparent 30%), radial-gradient(circle at 90% 60%, rgba(255,194,133,.03), transparent 30%)' }}>
 
       {/* Screen share banner */}
       {isScreenSharing && (
-        <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:200, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'.6rem 1.5rem', background:'rgba(15,15,15,.9)', borderBottom:'1px solid rgba(255,255,255,.1)' }}>
+        <div style={{ position:'absolute', top:0, left:0, right:0, zIndex:200, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'.6rem 1.5rem', background:'rgba(16,11,8,.9)', borderBottom:'1px solid rgba(255,255,255,.1)' }}>
           <p style={{ fontSize:'.85rem' }}>You&apos;re presenting to everyone</p>
-          <button onClick={stopLocalScreenShare} style={{ fontSize:'.82rem', color:'#00ffcc', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>Stop presenting</button>
+          <button onClick={stopLocalScreenShare} style={{ fontSize:'.82rem', color:'#fa6114', background:'none', border:'none', cursor:'pointer', fontWeight:600 }}>Stop presenting</button>
         </div>
       )}
 
@@ -445,8 +445,8 @@ function LiveTranscriptHUD() {
 
   const isListening = voiceToolbarPhase === 'listening';
   const isTranscribing = voiceToolbarPhase === 'transcribing';
-  const dotColor = isListening ? 'rgba(255,255,255,.5)' : isTranscribing ? '#ffd700' : '#00ffcc';
-  const textColor = isListening ? 'rgba(255,255,255,.65)' : isTranscribing ? '#ffd700' : '#00ffcc';
+  const dotColor = isListening ? 'rgba(255,255,255,.5)' : isTranscribing ? '#ffb067' : '#fa6114';
+  const textColor = isListening ? 'rgba(255,255,255,.65)' : isTranscribing ? '#ffb067' : '#fa6114';
   const text = isListening
     ? 'Listening for "Hey Jarvis"…'
     : voiceToolbarTranscript || 'Processing voice…';
@@ -486,7 +486,7 @@ function MeetingInsightsHUD() {
   if (!activeInsight && !showNotes) return null;
 
   const iconMap = { action_items: '⚡', summary: '📊', brainstorm: '💡', decision: '⚖️' };
-  const colorMap = { action_items: '#00ffcc', summary: '#ffd700', brainstorm: '#a78bfa', decision: '#fb923c' };
+  const colorMap = { action_items: '#fa6114', summary: '#ffb067', brainstorm: '#ce7f5d', decision: '#fb923c' };
 
   const panelBase: React.CSSProperties = {
     background: 'rgba(10,10,14,.92)',
@@ -535,7 +535,7 @@ function MeetingInsightsHUD() {
       {activeInsight && (
         <div className="insights-hud" style={{ ...panelBase, width: 280 }}>
           <div className="insights-hud-header" style={{ ...headerBase, background: `${colorMap[activeInsight.type]}11` }}>
-            <div className="insights-hud-title" style={{ ...titleBase, color: colorMap[activeInsight.type] ?? '#00ffcc' }}>
+            <div className="insights-hud-title" style={{ ...titleBase, color: colorMap[activeInsight.type] ?? '#fa6114' }}>
               <span>{iconMap[activeInsight.type] ?? '✦'}</span>
               {activeInsight.title}
             </div>
@@ -548,7 +548,7 @@ function MeetingInsightsHUD() {
           </div>
           {!insightMinimized && (
             <div className="insights-hud-body" style={{ padding: '10px 12px', maxHeight: 220, overflowY: 'auto' }}>
-              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: "'Space Grotesk',sans-serif", margin: 0, fontSize: '.8rem', lineHeight: 1.5, color: 'rgba(255,255,255,.85)' }}>
+              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: "var(--font-body)", margin: 0, fontSize: '.8rem', lineHeight: 1.5, color: 'rgba(255,255,255,.85)' }}>
                 {activeInsight.content}
               </pre>
             </div>
@@ -559,10 +559,10 @@ function MeetingInsightsHUD() {
       {/* Notes panel — shown below insight */}
       {showNotes && (
         <div className="insights-hud" style={{ ...panelBase, width: 280 }}>
-          <div className="insights-hud-header" style={{ ...headerBase, background: 'rgba(0,255,204,.05)' }}>
-            <div className="insights-hud-title" style={{ ...titleBase, color: '#00ffcc' }}>
+          <div className="insights-hud-header" style={{ ...headerBase, background: 'rgba(250,97,20,.05)' }}>
+            <div className="insights-hud-title" style={{ ...titleBase, color: '#fa6114' }}>
               <span>📝</span> Notes
-              <span style={{ fontSize: '.7rem', color: 'rgba(0,255,204,.6)', fontWeight: 400 }}>({notesItems.length})</span>
+              <span style={{ fontSize: '.7rem', color: 'rgba(250,97,20,.6)', fontWeight: 400 }}>({notesItems.length})</span>
             </div>
             <div style={{ display: 'flex', gap: 2 }}>
               <button style={iconBtn} onClick={() => setNotesMinimized(!notesMinimized)} title={notesMinimized ? 'Expand' : 'Minimize'}>

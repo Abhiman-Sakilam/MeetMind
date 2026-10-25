@@ -63,15 +63,15 @@ export function ActionItemsCard({ roomName, items }: Props) {
                   gap: '.65rem',
                   padding: '.6rem .85rem',
                   borderRadius: 12,
-                  border: `1px solid ${done ? 'rgba(0,255,204,.3)' : 'rgba(255,255,255,.08)'}`,
-                  background: done ? 'rgba(0,255,204,.06)' : 'rgba(0,0,0,.3)',
+                  border: `1px solid ${done ? 'rgba(250,97,20,.3)' : 'rgba(255,255,255,.08)'}`,
+                  background: done ? 'rgba(250,97,20,.06)' : 'rgba(0,0,0,.3)',
                   opacity: done ? .55 : 1,
                   transition: 'all .15s',
                 }}>
               <div style={{
                 width: 16, height: 16, borderRadius: 4, flexShrink: 0, marginTop: 2,
-                background: done ? '#00ffcc' : 'transparent',
-                border: `1px solid ${done ? '#00ffcc' : 'rgba(255,255,255,.25)'}`,
+                background: done ? '#fa6114' : 'transparent',
+                border: `1px solid ${done ? '#fa6114' : 'rgba(255,255,255,.25)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{done && <Check size={10} style={{ color: '#000' }} />}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
