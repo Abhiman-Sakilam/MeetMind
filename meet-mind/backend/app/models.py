@@ -22,6 +22,8 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     display_name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
+    # Bumped on password reset / Google password drop; older login tokens stop working.
+    token_version = Column(Integer, nullable=False, default=0, server_default="0")
     created_at = Column(DateTime(timezone=True), default=_now)
 
 

@@ -15,12 +15,12 @@ def _secret() -> str:
     return settings.jwt_secret
 
 
-def create_access_token(user_id: str, email: str, name: str = "") -> str:
+def create_access_token(user_id: str, email: str, name: str = "", token_version: int = 0) -> str:
     from app.config import settings
     from jose import jwt
 
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
-    payload = {"sub": user_id, "email": email, "name": name, "exp": expire}
+    payload = {"sub": user_id, "email": email, "name": name, "tv": token_version, "exp": expire}
     return jwt.encode(payload, _secret(), algorithm=settings.jwt_algorithm)
 
 
@@ -32,6 +32,25 @@ def decode_token(token: str) -> dict:
         return jwt.decode(token, _secret(), algorithms=[settings.jwt_algorithm])
     except JWTError as exc:
         raise HTTPException(status_code=401, detail="Invalid or expired token") from exc
+
+
+async def verify_access_token(token: str) -> dict:
+    """Decode a login token and reject it if the user's token_version has moved on
+    (password reset or Google password drop since it was issued)."""
+    from sqlalchemy import select
+
+    from app.database import async_session
+    from app.models import User
+
+    claims = decode_token(token)
+    async with async_session() as db:
+        current = (
+            await db.execute(select(User.token_version).where(User.id == claims.get("sub")))
+        ).scalar_one_or_none()
+    # Tokens issued before versioning carry no "tv" and count as version 0.
+    if current is None or int(claims.get("tv", 0)) != current:
+        raise HTTPException(status_code=401, detail="Session expired. Please sign in again.")
+    return claims
 
 
 def _reset_secret() -> str:
@@ -99,7 +118,7 @@ async def get_current_user(
         )
     if not token:
         raise HTTPException(status_code=401, detail="Missing authentication token")
-    return decode_token(token)
+    return await verify_access_token(token)
 
 
 async def get_optional_user(
@@ -109,6 +128,6 @@ async def get_optional_user(
     if not _secret() or not token:
         return None
     try:
-        return decode_token(token)
+        return await verify_access_token(token)
     except HTTPException:
         return None

@@ -1118,7 +1118,7 @@ async def auth_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
     if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token(user.id, user.email, user.display_name or "")
+    token = create_access_token(user.id, user.email, user.display_name or "", user.token_version or 0)
     return {"access_token": token, "token_type": "bearer", "display_name": user.display_name}
 
 
@@ -1179,9 +1179,10 @@ async def auth_google(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db
         # Password signup never verified the email; Google just did. Drop that password so
         # whoever registered this address first (possibly not its owner) can't keep access.
         user.hashed_password = _google_no_password()
+        user.token_version = (user.token_version or 0) + 1  # sign out the previous holder
         await db.commit()
 
-    token = create_access_token(user.id, user.email, user.display_name or name)
+    token = create_access_token(user.id, user.email, user.display_name or name, user.token_version or 0)
     return {"access_token": token, "token_type": "bearer", "display_name": user.display_name or name}
 
 
@@ -1224,6 +1225,7 @@ async def auth_reset_password(request: Request, body: ResetPasswordRequest, db: 
     if not user or not reset_token_matches(payload, user.hashed_password):
         raise HTTPException(status_code=400, detail="This reset link is invalid or has expired")
     user.hashed_password = hash_password(body.password)
+    user.token_version = (user.token_version or 0) + 1  # sign out every existing session
     await db.commit()
     return {"ok": True}
 
@@ -1283,7 +1285,7 @@ async def send_meeting_summary_email(
 
 @app.websocket("/ws/{room_id}/{user_id}")
 async def websocket_signaling(websocket: WebSocket, room_id: str, user_id: str, token: str | None = None):
-    from app.auth import decode_token
+    from app.auth import verify_access_token
     from app.config import settings as _settings
     from app.database import async_session
 
@@ -1296,7 +1298,7 @@ async def websocket_signaling(websocket: WebSocket, room_id: str, user_id: str, 
         await websocket.close(code=1008)
         return
     try:
-        claims = decode_token(token)
+        claims = await verify_access_token(token)
     except Exception:
         await websocket.close(code=1008)
         return

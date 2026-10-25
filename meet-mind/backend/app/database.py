@@ -25,6 +25,7 @@ _MIGRATIONS = [
     "ALTER TABLE participants ADD COLUMN IF NOT EXISTS user_id VARCHAR(36)",
     "ALTER TABLE notes ADD COLUMN IF NOT EXISTS session_id VARCHAR(64)",
     "ALTER TABLE notes ADD COLUMN IF NOT EXISTS session_title VARCHAR(200)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0",
     # commands table
     """
     CREATE TABLE IF NOT EXISTS commands (
