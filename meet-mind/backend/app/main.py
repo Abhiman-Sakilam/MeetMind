@@ -1,6 +1,7 @@
 import json
 import uuid
 import asyncio
+import secrets
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, UploadFile, File, Form, Request, BackgroundTasks
@@ -1130,6 +1131,12 @@ class GoogleAuthRequest(BaseModel):
     credential: str  # Google ID token (JWT) returned by Google Identity Services
 
 
+def _google_no_password() -> str:
+    # Unusable for password login ("!" prefix). Unique per call so a password reset token,
+    # which is bound to the stored hash, can never become valid again after a later drop.
+    return f"!google-oauth-no-password:{secrets.token_hex(8)}"
+
+
 @app.post("/api/auth/google")
 async def auth_google(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db)):
     """Verify a Google ID token, upsert the user, and issue a MeetMind JWT."""
@@ -1163,7 +1170,7 @@ async def auth_google(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db
         user = User(
             email=email,
             display_name=name,
-            hashed_password="!google-oauth-no-password",  # unusable for password login
+            hashed_password=_google_no_password(),  # unusable for password login
         )
         db.add(user)
         await db.commit()
@@ -1171,7 +1178,7 @@ async def auth_google(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db
     elif not user.hashed_password.startswith("!"):
         # Password signup never verified the email; Google just did. Drop that password so
         # whoever registered this address first (possibly not its owner) can't keep access.
-        user.hashed_password = "!google-oauth-no-password"
+        user.hashed_password = _google_no_password()
         await db.commit()
 
     token = create_access_token(user.id, user.email, user.display_name or name)
