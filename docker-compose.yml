@@ -57,7 +57,11 @@ services:
 
   # ── MeetMind Backend ─────────────────────────────────────────────────────────
   backend:
-    build: ./meet-mind/backend
+    build:
+      context: ./meet-mind/backend
+      args:
+        # 1 = bundle local Whisper/Coqui (~3GB); 0 = slim image, voice via ElevenLabs
+        LOCAL_MODELS: ${LOCAL_MODELS:-0}
     container_name: meetmind-backend
     ports:
       - "8000:8000"
@@ -80,6 +84,13 @@ services:
       - AI_BRAIN_SERVICE_TOKEN=${AI_BRAIN_SERVICE_TOKEN:-}
       - TTS_MODEL_NAME=${TTS_MODEL_NAME:-tts_models/en/vctk/vits}
       - TTS_DEVICE=${TTS_DEVICE:-cpu}
+      # Voice: ElevenLabs when ELEVENLABS_API_KEY is set (STT/TTS_PROVIDER=auto), else local models
+      - STT_PROVIDER=${STT_PROVIDER:-auto}
+      - TTS_PROVIDER=${TTS_PROVIDER:-auto}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY:-}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-JBFqnCBsd6RMkjVDRZzb}
+      - ELEVENLABS_STT_MODEL=${ELEVENLABS_STT_MODEL:-scribe_v2}
+      - ELEVENLABS_TTS_MODEL=${ELEVENLABS_TTS_MODEL:-eleven_flash_v2_5}
       # Auth: JWT signing secret (set in .env). Empty = random per start, logins reset on restart.
       - JWT_SECRET=${JWT_SECRET:-}
       # Google Sign-In: OAuth 2.0 Web client ID (Google Cloud Console). Empty = Google login disabled.

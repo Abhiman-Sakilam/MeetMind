@@ -1,0 +1,7 @@
+# Local STT/TTS models (~3GB with PyTorch). Only needed when STT_PROVIDER/TTS_PROVIDER=local.
+# Docker: build with LOCAL_MODELS=1. Venv: pip install -r requirements-local.txt
+faster-whisper>=1.0.3
+torch --index-url https://download.pytorch.org/whl/cpu
+torchaudio --index-url https://download.pytorch.org/whl/cpu
+transformers>=4.36.0,<5.0.0
+coqui-tts[codec]>=0.27.0

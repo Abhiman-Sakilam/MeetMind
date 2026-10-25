@@ -8,10 +8,13 @@ import tempfile
 import threading
 from pathlib import Path
 from threading import Lock
+from typing import TYPE_CHECKING
 
-from faster_whisper import WhisperModel
-
+from app import elevenlabs_client
 from app.config import settings
+
+if TYPE_CHECKING:
+    from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +26,10 @@ _loaded_compute_type: str | None = None
 
 class STTError(Exception):
     """Speech-to-text failed (model load, decode, or inference)."""
+
+
+def _use_cloud() -> bool:
+    return settings.stt_provider == "elevenlabs"
 
 
 def _download_root() -> str | None:
@@ -94,6 +101,13 @@ def _load_whisper_model() -> WhisperModel:
     Docker image while .env still says cuda), fall back to CPU so voice still works.
     """
     global _loaded_device, _loaded_compute_type
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError as e:
+        raise STTError(
+            "Local STT not installed. Set ELEVENLABS_API_KEY, or build with LOCAL_MODELS=1 "
+            "(pip install -r requirements-local.txt)."
+        ) from e
     download_root = _download_root()
     device = settings.stt_device
     compute_type = settings.stt_compute_type
@@ -187,6 +201,13 @@ def _get_model() -> WhisperModel:
 
 
 async def warmup_model() -> dict[str, str]:
+    if _use_cloud():
+        return {
+            "status": "ok",
+            "model": settings.elevenlabs_stt_model,
+            "device": "elevenlabs",
+            "compute_type": "cloud",
+        }
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, _get_model)
     return {
@@ -198,7 +219,7 @@ async def warmup_model() -> dict[str, str]:
 
 
 def is_model_loaded() -> bool:
-    return _MODEL is not None
+    return _use_cloud() or _MODEL is not None
 
 
 def runtime_stt_info() -> dict[str, str | bool | None]:
@@ -213,6 +234,11 @@ def runtime_stt_info() -> dict[str, str | bool | None]:
 async def transcribe_audio_bytes(audio_bytes: bytes, suffix: str = ".webm") -> str:
     if not audio_bytes:
         return ""
+    if _use_cloud():
+        try:
+            return await elevenlabs_client.transcribe(audio_bytes, suffix)
+        except elevenlabs_client.ElevenLabsError as e:
+            raise STTError(str(e)) from e
     try:
         loop = asyncio.get_event_loop()
         model = await loop.run_in_executor(None, _get_model)

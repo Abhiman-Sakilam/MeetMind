@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { api, ApiError } from '../services/api';
 
 const FEATURES = [
-  { viz: 'transcript', title: 'Real-Time Transcription', desc: 'Distil-Whisper runs locally on your machine — zero API cost per minute. 98% accuracy, near-real-time latency with continuous voice activity detection.', tag: 'Free · Local' },
+  { viz: 'transcript', title: 'Real-Time Transcription', desc: 'Every word captured as it is spoken, with studio-grade ElevenLabs speech recognition for your voice commands. Names, numbers and jargon come through clean.', tag: 'ElevenLabs Scribe' },
   { viz: 'roleplay', title: 'AI Role-Playing', desc: 'Say "Jarvis, act as an investor" or "play devil\'s advocate" and get instant perspective shifts. Powered by GPT-4o for deep reasoning and structured replies.', tag: 'GPT-4o' },
   { viz: 'screen', title: 'Screen Analysis', desc: 'Share your screen and say "Jarvis, check the screen." It analyzes designs, code, documents, and gives structured feedback — live, to everyone in the call.', tag: 'Vision AI' },
   { viz: 'actions', title: 'Action Item Extraction', desc: 'spaCy NER + OpenAI automatically detects who owns what task and by when. "John should send the report by Friday" becomes a tracked action item instantly.', tag: 'spaCy + GPT' },
@@ -519,7 +519,7 @@ export function Home() {
             <span className="cc-logo-mark"><AudioLines size={16} strokeWidth={2.4} /></span>
             MeetMind
           </a>
-          <div className="cc-footer-copy">© 2026 MeetMind. Built with Distil-Whisper, XTTS v2 & GPT-4o.</div>
+          <div className="cc-footer-copy">© 2026 MeetMind. Voice by ElevenLabs. Built with GPT-4o.</div>
           <div className="cc-footer-links">
             <a href="#features">Features</a>
             <a href="#pricing">Pricing</a>

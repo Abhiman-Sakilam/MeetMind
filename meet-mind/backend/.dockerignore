@@ -2,6 +2,9 @@ __pycache__
 *.pyc
 .git
 venv
+.venv
+.pytest_cache
+.ruff_cache
 *.db
 *.md
 # Never bake local URLs (e.g. AI_BRAIN_BASE_URL=127.0.0.1) into the image — use compose env instead.

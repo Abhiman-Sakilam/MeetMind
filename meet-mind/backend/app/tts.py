@@ -1,7 +1,7 @@
-"""Text-to-Speech module — Coqui XTTS v2 (Phase 4).
+"""Text-to-Speech module — ElevenLabs (cloud) or Coqui TTS (local).
 
-Currently a stub: returns None when TTS is not configured.
-Wire this after installing TTS: `pip install TTS` and setting TTS_MODEL_NAME.
+TTS_PROVIDER picks the backend. Local returns None when TTS_MODEL_NAME is empty
+or the Coqui package is not installed (see requirements-local.txt).
 """
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 from threading import Lock
 
+from app import elevenlabs_client
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,17 @@ class TTSError(Exception):
     """Text-to-speech synthesis failed."""
 
 
+def _use_cloud() -> bool:
+    return settings.tts_provider == "elevenlabs"
+
+
+def tts_media_type() -> str:
+    return "audio/mpeg" if _use_cloud() else "audio/wav"
+
+
 def is_tts_available() -> bool:
+    if _use_cloud():
+        return True
     return bool(getattr(settings, "tts_model_name", "").strip())
 
 
@@ -69,7 +80,15 @@ def _get_model():
 
 
 async def synthesize(text: str, speaker_wav: str | None = None) -> bytes | None:
-    """Synthesize text to WAV bytes. Returns None if TTS is not available."""
+    """Synthesize text to audio bytes (see tts_media_type). Returns None if TTS is not available."""
+    if not text.strip():
+        return None
+    if _use_cloud():
+        try:
+            return await elevenlabs_client.synthesize(text)
+        except elevenlabs_client.ElevenLabsError as e:
+            raise TTSError(str(e)) from e
+
     model = _get_model()
     if model is None:
         return None
@@ -98,6 +117,8 @@ async def synthesize(text: str, speaker_wav: str | None = None) -> bytes | None:
 
 def tts_status() -> dict[str, str]:
     """Return current TTS status without triggering model load."""
+    if _use_cloud():
+        return _cloud_status()
     model_name = getattr(settings, "tts_model_name", "").strip()
     if not model_name:
         status = "disabled"
@@ -113,7 +134,18 @@ def tts_status() -> dict[str, str]:
     }
 
 
+def _cloud_status() -> dict[str, str]:
+    return {
+        "status": "ok",
+        "model": settings.elevenlabs_tts_model,
+        "device": "elevenlabs",
+        "last_error": "",
+    }
+
+
 def warmup_tts() -> dict[str, str]:
+    if _use_cloud():
+        return _cloud_status()
     model = _get_model()
     return {
         "status": "ok" if model is not None else "disabled",

@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     # For higher quality: tts_models/multilingual/multi-dataset/xtts_v2 (~2GB, GPU recommended).
     tts_model_name: str = "tts_models/en/vctk/vits"
     tts_device: str = "cpu"
+    # Voice providers: "elevenlabs", "local" (Whisper/Coqui above), or "auto"
+    # (elevenlabs when ELEVENLABS_API_KEY is set, otherwise local).
+    stt_provider: str = "auto"
+    tts_provider: str = "auto"
+    elevenlabs_api_key: str = ""
+    elevenlabs_voice_id: str = "JBFqnCBsd6RMkjVDRZzb"
+    elevenlabs_stt_model: str = "scribe_v2"
+    elevenlabs_tts_model: str = "eleven_flash_v2_5"
     # Email delivery (optional). Leave blank to disable email features.
     smtp_host: str = ""
     smtp_port: int = 587
@@ -65,6 +73,13 @@ class Settings(BaseSettings):
     def empty_stt_prompt_means_default(self) -> Self:
         if not self.stt_initial_prompt.strip():
             self.stt_initial_prompt = _STT_INITIAL_PROMPT_DEFAULT
+        default_provider = "elevenlabs" if self.elevenlabs_api_key.strip() else "local"
+        self.stt_provider = self.stt_provider.strip().lower()
+        self.tts_provider = self.tts_provider.strip().lower()
+        if self.stt_provider not in ("elevenlabs", "local"):
+            self.stt_provider = default_provider
+        if self.tts_provider not in ("elevenlabs", "local"):
+            self.tts_provider = default_provider
         if not self.jwt_secret:
             # No secret configured: use a random per-process one (logins reset on restart)
             # rather than a guessable default. Set JWT_SECRET to keep sessions across restarts.

@@ -6,11 +6,6 @@ python-dotenv>=1.0.0
 pydantic-settings>=2.0.0
 httpx>=0.27.0
 python-multipart>=0.0.9
-faster-whisper>=1.0.3
-torch --index-url https://download.pytorch.org/whl/cpu
-torchaudio --index-url https://download.pytorch.org/whl/cpu
-transformers>=4.36.0,<5.0.0
-coqui-tts[codec]>=0.27.0
 reportlab>=4.2.0
 aiosmtplib>=3.0.0
 python-jose[cryptography]>=3.3.0

@@ -34,7 +34,8 @@ from app.stt import (
     transcribe_audio_bytes,
     warmup_model,
 )
-from app.tts import TTSError, is_tts_available, tts_status, synthesize as tts_synthesize, warmup_tts
+from app.tts import TTSError, is_tts_available, tts_media_type, tts_status, synthesize as tts_synthesize, warmup_tts
+from app import elevenlabs_client
 from app.auth import get_current_user
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -235,6 +236,7 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(_warmup())
     yield
+    await elevenlabs_client.aclose()
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
@@ -485,10 +487,12 @@ async def assistant_brain_health(current_user: dict = Depends(get_current_user))
 @app.get("/api/assistant/stt-status")
 async def assistant_stt_status(current_user: dict = Depends(get_current_user)):
     rt = runtime_stt_info()
+    cloud = settings.stt_provider == "elevenlabs"
     return {
         "status": "ok",
-        "model": settings.stt_model_name,
-        "device": settings.stt_device,
+        "provider": settings.stt_provider,
+        "model": settings.elevenlabs_stt_model if cloud else settings.stt_model_name,
+        "device": "elevenlabs" if cloud else settings.stt_device,
         "compute_type": settings.stt_compute_type,
         "initial_prompt_set": bool(settings.stt_initial_prompt.strip()),
         "loaded": is_model_loaded(),
@@ -628,7 +632,7 @@ class TTSSynthRequest(BaseModel):
 @app.post("/api/assistant/tts")
 @limiter.limit("30/minute")
 async def assistant_tts_synthesize(request: Request, body: TTSSynthRequest, current_user: dict = Depends(get_current_user)):
-    """Synthesize text to speech, return WAV audio."""
+    """Synthesize text to speech, return audio (MP3 from ElevenLabs, WAV from local Coqui)."""
     if not (body.text or "").strip():
         raise HTTPException(status_code=400, detail="Empty text")
     try:
@@ -640,7 +644,7 @@ async def assistant_tts_synthesize(request: Request, body: TTSSynthRequest, curr
     if wav_bytes is None:
         raise HTTPException(status_code=501, detail="TTS not available. Set TTS_MODEL_NAME in config.")
     from fastapi.responses import Response
-    return Response(content=wav_bytes, media_type="audio/wav")
+    return Response(content=wav_bytes, media_type=tts_media_type())
 
 
 @app.post("/api/assistant/execute")
@@ -688,7 +692,7 @@ async def assistant_voice_execute(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Voice path: upload audio -> local Distil-Whisper STT -> brain execute.
+    Voice path: upload audio -> STT (ElevenLabs Scribe or local Whisper) -> brain execute.
     Identity is server-authoritative (JWT) so per-user context is stable across reconnects.
     """
     audio_bytes = await file.read()

@@ -378,7 +378,7 @@ export const api = {
     return request(`/api/role/state?${qs.toString()}`, { method: 'GET' });
   },
 
-  /** TTS: synthesize text to speech, returns WAV audio blob. */
+  /** TTS: synthesize text to speech, returns an audio blob (MP3 or WAV). */
   async ttsSynthesize(text: string): Promise<Blob | null> {
     try {
       const res = await fetch(`${API_BASE}/api/assistant/tts`, {
