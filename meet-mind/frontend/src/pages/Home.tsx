@@ -1,42 +1,88 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Mic, Brain, Monitor, CheckSquare, Vote, FileText, Zap, LogOut, ArrowUpRight, Sparkles, AudioLines, Check, X } from 'lucide-react';
+import { Loader2, LogOut, ArrowUpRight, Sparkles, AudioLines, Check, X } from 'lucide-react';
 import { useMeetingStore } from '../store/meetingStore';
 import { useAuthStore } from '../store/authStore';
 import { api, ApiError } from '../services/api';
 
 const FEATURES = [
-  { icon: Mic, title: 'Real-Time Transcription', desc: 'Distil-Whisper runs locally on your machine — zero API cost per minute. 98% accuracy, near-real-time latency with continuous voice activity detection.', tag: 'Free · Local' },
-  { icon: Brain, title: 'AI Role-Playing', desc: 'Say "Jarvis, act as an investor" or "play devil\'s advocate" and get instant perspective shifts. Powered by GPT-4o for deep reasoning and structured replies.', tag: 'GPT-4o' },
-  { icon: Monitor, title: 'Screen Analysis', desc: 'Share your screen and say "Jarvis, check the screen." It analyzes designs, code, documents, and gives structured feedback — live, to everyone in the call.', tag: 'Vision AI' },
-  { icon: CheckSquare, title: 'Action Item Extraction', desc: 'spaCy NER + OpenAI automatically detects who owns what task and by when. "John should send the report by Friday" becomes a tracked action item instantly.', tag: 'spaCy + GPT' },
-  { icon: Vote, title: 'In-Meeting Voting', desc: 'Say "Jarvis, start a vote on X" and all participants can vote in real time. Results are recorded in the meeting summary automatically.', tag: 'Real-time' },
-  { icon: FileText, title: 'Post-Meeting Summary PDF', desc: 'When the meeting ends, get a complete structured document: full transcript, decisions made, action items with owners, and next steps — exported as PDF.', tag: 'ReportLab' },
+  { viz: 'transcript', title: 'Real-Time Transcription', desc: 'Distil-Whisper runs locally on your machine — zero API cost per minute. 98% accuracy, near-real-time latency with continuous voice activity detection.', tag: 'Free · Local' },
+  { viz: 'roleplay', title: 'AI Role-Playing', desc: 'Say "Jarvis, act as an investor" or "play devil\'s advocate" and get instant perspective shifts. Powered by GPT-4o for deep reasoning and structured replies.', tag: 'GPT-4o' },
+  { viz: 'screen', title: 'Screen Analysis', desc: 'Share your screen and say "Jarvis, check the screen." It analyzes designs, code, documents, and gives structured feedback — live, to everyone in the call.', tag: 'Vision AI' },
+  { viz: 'actions', title: 'Action Item Extraction', desc: 'spaCy NER + OpenAI automatically detects who owns what task and by when. "John should send the report by Friday" becomes a tracked action item instantly.', tag: 'spaCy + GPT' },
+  { viz: 'vote', title: 'In-Meeting Voting', desc: 'Say "Jarvis, start a vote on X" and all participants can vote in real time. Results are recorded in the meeting summary automatically.', tag: 'Real-time' },
+  { viz: 'pdf', title: 'Post-Meeting Summary PDF', desc: 'When the meeting ends, get a complete structured document: full transcript, decisions made, action items with owners, and next steps — exported as PDF.', tag: 'ReportLab' },
 ];
 
-const COMMANDS = [
-  { text: 'Hey Jarvis, start taking notes', intent: 'TAKE_NOTES' },
-  { text: 'Hey Jarvis, start recording', intent: 'RECORD' },
-  { text: 'Jarvis, act as an investor', intent: 'PLAY_ROLE' },
-  { text: 'Jarvis, check the screen', intent: 'ANALYZE_SCREEN' },
-  { text: 'Hey Jarvis, help us decide', intent: 'HELP_DECIDE' },
-  { text: 'Jarvis, brainstorm ideas for X', intent: 'BRAINSTORM' },
-  { text: 'Jarvis, play devil\'s advocate', intent: 'DEVIL_ADVOCATE' },
-  { text: 'Hey Jarvis, give us a summary', intent: 'GET_SUMMARY' },
-  { text: 'Jarvis, create action items', intent: 'ACTION_ITEMS' },
-  { text: 'Hey Jarvis, start a vote on X', intent: 'START_VOTE' },
-];
+/** Small mock-UI preview shown at the top of each feature card. */
+function FeatureViz({ kind }: { kind: string }) {
+  switch (kind) {
+    case 'transcript':
+      return (
+        <>
+          <div className="viz-wave">
+            {Array.from({ length: 28 }, (_, i) => <i key={i} style={{ animationDelay: `${(i % 7) * 120}ms` }} />)}
+          </div>
+          <div className="viz-line"><b>Priya</b>Let's ship the beta on Friday.</div>
+          <div className="viz-line"><b>Alex</b>Agreed — I'll update the docs.</div>
+        </>
+      );
+    case 'roleplay':
+      return (
+        <>
+          <div className="viz-bubble">Jarvis, act as an investor.</div>
+          <div className="viz-bubble viz-bubble-ai"><Sparkles size={13} />Great traction — but what's your CAC payback?</div>
+        </>
+      );
+    case 'screen':
+      return (
+        <div className="viz-screen">
+          <div className="viz-dots"><i /><i /><i /></div>
+          <div className="viz-skel" style={{ width: '70%' }} />
+          <div className="viz-skel" style={{ width: '90%' }} />
+          <div className="viz-skel" style={{ width: '55%' }} />
+          <div className="viz-scan" />
+        </div>
+      );
+    case 'actions':
+      return (
+        <>
+          {[['Send Q3 report', 'John · Fri', true], ['Book client demo', 'Sara · Mon', false], ['Fix login bug', 'Dev · Today', false]].map(([task, owner, done]) => (
+            <div key={task as string} className="viz-row">
+              <span className={`viz-check${done ? ' on' : ''}`}>{done && <Check size={11} strokeWidth={3} />}</span>
+              {task}<em>{owner}</em>
+            </div>
+          ))}
+        </>
+      );
+    case 'vote':
+      return (
+        <>
+          {[['Launch in May', 72], ['Wait for Q3', 28]].map(([option, pct]) => (
+            <div key={option} className="viz-vote">
+              <div><span>{option}</span><span>{pct}%</span></div>
+              <div className="viz-bar"><i style={{ width: `${pct}%` }} /></div>
+            </div>
+          ))}
+        </>
+      );
+    default:
+      return (
+        <div className="viz-doc">
+          <div className="viz-skel h" />
+          <div className="viz-skel" style={{ width: '90%' }} />
+          <div className="viz-skel" style={{ width: '75%' }} />
+          <div className="viz-skel h" />
+          <div className="viz-skel" style={{ width: '85%' }} />
+          <span className="viz-pdf">PDF</span>
+        </div>
+      );
+  }
+}
 
 const HEADLINE = 'Meetings that think with you';
 
 const CAPABILITIES = ['Live transcription', 'Smart summaries', 'Action items', 'Screen analysis', 'Role-play', 'Decision help', 'Voice commands', 'PDF reports'];
-
-const STATS = [
-  { label: 'STT Accuracy', value: '98%', target: '98%', desc: 'Distil-Whisper runs as a local model — no audio leaves your machine.' },
-  { label: 'Audio Processing Cost', value: '$0', desc: 'Transcription and speech run entirely on-device.' },
-  { label: 'Voice Commands', value: '10+', target: '10+', desc: 'Natural-language intent — Jarvis understands meaning, not exact phrases.' },
-  { label: 'Architecture', value: 'P2P', desc: 'WebRTC calls go peer-to-peer. No media server required.' },
-];
 
 const PLANS = [
   { name: 'Free', price: '$0', cta: 'Get Started', featured: false, perks: ['3 meetings/month', 'Basic note taking', 'Transcript download', 'Limited commands'] },
@@ -140,33 +186,7 @@ function useScrollAnimations() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // 2. Counter animations for [data-target] elements
-    const animateCounter = (el: HTMLElement) => {
-      const raw = el.dataset.target ?? '0';
-      const prefix = raw.startsWith('$') ? '$' : '';
-      const suffix = raw.endsWith('%') ? '%' : raw.endsWith('+') ? '+' : '';
-      const num = parseInt(raw.replace(/\D/g, ''), 10) || 0;
-      const t0 = performance.now();
-      const duration = 1600;
-      const tick = (now: number) => {
-        const t = Math.min((now - t0) / duration, 1);
-        const ease = 1 - Math.pow(1 - t, 4); // ease-out quart
-        el.textContent = `${prefix}${Math.round(ease * num)}${suffix}`;
-        if (t < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    };
-    const counterObs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting && !e.target.hasAttribute('data-counted')) {
-          e.target.setAttribute('data-counted', '1');
-          setTimeout(() => animateCounter(e.target as HTMLElement), 250);
-        }
-      });
-    }, { threshold: 0.5 });
-    document.querySelectorAll<HTMLElement>('[data-target]').forEach(el => counterObs.observe(el));
-
-    // 3. Stagger groups — cascade children with increasing delays
+    // 2. Stagger groups — cascade children with increasing delays
     const staggerObs = new IntersectionObserver(entries => {
       entries.forEach(e => {
         if (e.isIntersecting) {
@@ -193,14 +213,13 @@ function useScrollAnimations() {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
-      counterObs.disconnect();
       staggerObs.disconnect();
       variantObs.disconnect();
     };
   }, []);
 }
 
-/** One rAF-throttled pointer listener: card spotlight (--mx/--my) + hero portrait parallax (--px/--py). */
+/** One rAF-throttled pointer listener: card spotlight (--mx/--my) + 3D tilt of the hero portrait. */
 function usePointerEffects() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -211,7 +230,7 @@ function usePointerEffects() {
       frame = 0;
       const e = last;
       if (!e) return;
-      const card = (e.target as Element | null)?.closest?.('.cc-card, .cc-stat, .cc-plan, .cc-command') as HTMLElement | null;
+      const card = (e.target as Element | null)?.closest?.('.cc-card, .cc-plan') as HTMLElement | null;
       if (card) {
         const r = card.getBoundingClientRect();
         card.style.setProperty('--mx', `${e.clientX - r.left}px`);
@@ -221,8 +240,10 @@ function usePointerEffects() {
       if (art && window.scrollY < window.innerHeight) {
         const dx = e.clientX / window.innerWidth - 0.5;
         const dy = e.clientY / window.innerHeight - 0.5;
-        art.style.setProperty('--px', `${(dx * -18).toFixed(1)}px`);
-        art.style.setProperty('--py', `${(dy * -14).toFixed(1)}px`);
+        art.style.setProperty('--ry', `${(dx * 16).toFixed(2)}deg`);
+        art.style.setProperty('--rx', `${(dy * -12).toFixed(2)}deg`);
+        art.style.setProperty('--px', `${(dx * -16).toFixed(1)}px`);
+        art.style.setProperty('--py', `${(dy * -12).toFixed(1)}px`);
       }
     };
 
@@ -325,7 +346,6 @@ export function Home() {
           </a>
           <div className="cc-nav-links">
             <a href="#features">Features</a>
-            <a href="#commands">Commands</a>
             <a href="#pricing">Pricing</a>
             {pastMeetings.length > 0 && <a href="#history">History</a>}
           </div>
@@ -351,7 +371,7 @@ export function Home() {
       {/* Hero */}
       <section id="top" className="cc-hero">
         <div className="cc-hero-art" aria-hidden="true">
-          <img src="/hero-floral.webp" alt="" width={900} height={1146} fetchPriority="high" />
+          <img src="/hero-portrait.webp" alt="" width={1087} height={1166} fetchPriority="high" />
         </div>
         <span className="cc-badge"><Sparkles size={15} /> AI co-pilot for every call</span>
         <h1 className="cc-h1" aria-label={HEADLINE}>
@@ -410,51 +430,22 @@ export function Home() {
         </div>
       </div>
 
-      {/* Stats */}
-      <section className="cc-section" style={{ paddingTop: 40 }}>
-        <div className="cc-container cc-stats stagger-group">
-          {STATS.map((s) => (
-            <div key={s.label} className="cc-stat stagger-child">
-              <div className="cc-stat-label">{s.label}</div>
-              <div className="cc-stat-num" data-target={s.target}>{s.value}</div>
-              <div className="cc-stat-desc">{s.desc}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Features */}
       <section id="features" className="cc-section">
         <div className="cc-section-head reveal-up">
           <span className="cc-eyebrow">What Jarvis Does</span>
-          <h2 className="cc-h2">Not just a transcriber — <span className="cc-accent-text">a thinking partner</span></h2>
+          <h2 className="cc-h2">Not just a transcriber —<br /><span className="cc-accent-text">a thinking partner</span></h2>
           <p className="cc-lead">Replaces Otter.ai + Zoom + Notion — in one tool, with a voice.</p>
         </div>
         <div className="cc-container cc-grid-3 stagger-group">
           {FEATURES.map((f) => (
-            <div key={f.title} className="cc-card stagger-child">
-              <div className="cc-icon"><f.icon size={22} strokeWidth={1.9} /></div>
+            <div key={f.title} className="cc-card cc-flow-card stagger-child">
+              <div className="cc-viz" aria-hidden="true">
+                <span className="cc-viz-tag">{f.tag}</span>
+                <FeatureViz kind={f.viz} />
+              </div>
               <div className="cc-card-title">{f.title}</div>
               <p className="cc-card-text">{f.desc}</p>
-              <span className="cc-tag">{f.tag}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Commands */}
-      <section id="commands" className="cc-section">
-        <div className="cc-section-head reveal-up">
-          <span className="cc-eyebrow">Voice Commands</span>
-          <h2 className="cc-h2">Just say <span className="cc-accent-text">“Hey Jarvis”</span></h2>
-          <p className="cc-lead">Flexible natural language — Jarvis understands intent, not just exact phrases.</p>
-        </div>
-        <div className="cc-commands stagger-group">
-          {COMMANDS.map((cmd) => (
-            <div key={cmd.intent} className="cc-command stagger-child">
-              <Zap size={15} strokeWidth={2} />
-              <span className="cc-command-text">{cmd.text}</span>
-              <span className="cc-command-intent">{cmd.intent}</span>
             </div>
           ))}
         </div>
@@ -531,7 +522,6 @@ export function Home() {
           <div className="cc-footer-copy">© 2026 MeetMind. Built with Distil-Whisper, XTTS v2 & GPT-4o.</div>
           <div className="cc-footer-links">
             <a href="#features">Features</a>
-            <a href="#commands">Commands</a>
             <a href="#pricing">Pricing</a>
           </div>
         </div>
